@@ -1,0 +1,11 @@
+{
+  "hosted-zone:account=068121675185:domainName=pbatch.net:region=eu-west-2": {
+    "Id": "/hostedzone/Z07113452JEBE2H2X0ZYT",
+    "Name": "pbatch.net."
+  },
+  "availability-zones:account=068121675185:region=eu-west-2": [
+    "eu-west-2a",
+    "eu-west-2b",
+    "eu-west-2c"
+  ]
+}

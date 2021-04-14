@@ -1,0 +1,11 @@
+{
+  "pictionary": {
+    "pictureBucket": "pictionary-mypicturebucket4cd3a363-o8clxqyh5mhx",
+    "jobQueue": "arn:aws:batch:eu-west-2:068121675185:job-queue/myjobqueue10DE9356-a9a96371ace133c",
+    "apiEndpoint": "https://8iisx5c671.execute-api.eu-west-2.amazonaws.com/prod/",
+    "websiteURL": "https://pictionary.pbatch.net",
+    "myapiEndpointF52D9E64": "https://8iisx5c671.execute-api.eu-west-2.amazonaws.com/prod/",
+    "deploymentBucket": "pictionary.pbatch.net",
+    "jobDefinition": "arn:aws:batch:eu-west-2:068121675185:job-definition/pictionary:2"
+  }
+}
