@@ -3,7 +3,7 @@
 from aws_cdk import core
 from pictionary.pictionary_stack import PictionaryStack
 
-env = {'region': 'eu-west-2',
+env = {'region': 'eu-west-1',
        'account': '068121675185'}
 app = core.App()
 PictionaryStack(app, "pictionary", env=env)

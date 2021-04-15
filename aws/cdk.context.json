@@ -7,5 +7,9 @@
     "eu-west-2a",
     "eu-west-2b",
     "eu-west-2c"
-  ]
+  ],
+  "hosted-zone:account=068121675185:domainName=pbatch.net:region=eu-west-1": {
+    "Id": "/hostedzone/Z07113452JEBE2H2X0ZYT",
+    "Name": "pbatch.net."
+  }
 }

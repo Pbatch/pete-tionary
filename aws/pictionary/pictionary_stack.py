@@ -20,9 +20,23 @@ class PictionaryStack(core.Stack):
     SITE_SUB_DOMAIN = 'pictionary'
     DOMAIN_NAME = 'pbatch.net'
     SITE_DOMAIN = f'{SITE_SUB_DOMAIN}.{DOMAIN_NAME}'
-    EC2_AMI = 'ami-082e298f790f88621'
-    VPC_ID = 'vpc-0c367c61993de16df'
-    PUBLIC_SUBNET_ID = 'subnet-0f65351474c1e561e'
+    EC2_AMI = 'ami-0c62045417a6d2199'
+    VPC_ID = 'vpc-69eb0f10'
+    REGION = 'eu-west-1'
+    AVAILABILITY_ZONES = ['eu-west-1a', 
+                          'eu-west-1b',
+                          'eu-west-1c']
+    PUBLIC_SUBNET_IDS = ['subnet-f0ac3faa',
+                         'subnet-27e1b741', 
+                         'subnet-4df5d405']
+    INSTANCE_TYPE = 'm4.xlarge'
+    MEMORY_LIMIT_MIB = 8000
+    GPU_COUNT = 0
+    VCPUS = 4
+    # INSTANCE_TYPE = 'p3.2xlarge'
+    # MEMORY_LIMIT_MIB = 15000
+    # GPU_COUNT = 1
+    # VCPUS = 8
 
     def setup_website_bucket(self):
         website_bucket = s3.Bucket(self, 'my_website_bucket',
@@ -85,8 +99,8 @@ class PictionaryStack(core.Stack):
 
     def setup_picture_bucket(self):
         picture_bucket = s3.Bucket(self, 'my_picture_bucket',
-                                   public_read_access=True,
-                                   removal_policy=core.RemovalPolicy.DESTROY
+                                   removal_policy=core.RemovalPolicy.DESTROY,
+                                   public_read_access=True
                                    )
         return picture_bucket
 
@@ -97,35 +111,36 @@ class PictionaryStack(core.Stack):
         return repository
 
     def setup_container(self):
-        role = iam.Role(self, 'my_role', assumed_by=iam.ServicePrincipal('ecs-tasks.amazonaws.com'))
-        policy = iam.PolicyStatement(actions=['s3:*'],
+        role = iam.Role(self, 'my_container_role',
+                        assumed_by=iam.ServicePrincipal('ecs-tasks.amazonaws.com'))
+        policy = iam.PolicyStatement(actions=['s3:PutObject'],
                                      resources=[self.picture_bucket.bucket_arn,
-                                                f'{self.picture_bucket.bucket_arn}'])
+                                                f'{self.picture_bucket.bucket_arn}/*'])
         role.add_to_policy(policy)
-        container = batch.JobDefinitionContainer(image=ecs.ContainerImage.from_ecr_repository(self.repository,
-                                                                                              tag='latest'),
-                                                 memory_limit_mib=15712,
+        image = ecs.ContainerImage.from_ecr_repository(self.repository, tag='latest')
+        container = batch.JobDefinitionContainer(image=image,
+                                                 memory_limit_mib=self.MEMORY_LIMIT_MIB,
                                                  job_role=role,
-                                                 gpu_count=1,
-                                                 vcpus=8)
+                                                 gpu_count=self.GPU_COUNT,
+                                                 vcpus=self.VCPUS)
         return container
 
     def setup_vpc(self):
         vpc = ec2.Vpc.from_vpc_attributes(self, 'my_vpc',
                                           vpc_id=self.VPC_ID,
-                                          availability_zones=['eu-west-2a'],
-                                          public_subnet_ids=[self.PUBLIC_SUBNET_ID])
+                                          availability_zones=self.AVAILABILITY_ZONES,
+                                          public_subnet_ids=self.PUBLIC_SUBNET_IDS)
         return vpc
 
     def setup_compute_environment(self):
-        # There is no way to automatically get the latest ECS GPU machine image
-        image = ec2.MachineImage.generic_linux({'eu-west-2': self.EC2_AMI})
+        image = ec2.MachineImage.generic_linux({self.REGION: self.EC2_AMI})
         # A p2.2xlarge instance has 8 vcpus, 61 GiB memory and costs $3.06 per Hour
-        instance_type = ec2.InstanceType('p3.2xlarge')
+        instance_type = ec2.InstanceType(self.INSTANCE_TYPE)
+        # Restrict the compute environment to 1 instance
         compute_resources = batch.ComputeResources(vpc=self.vpc,
                                                    image=image,
                                                    instance_types=[instance_type],
-                                                   maxv_cpus=8)
+                                                   maxv_cpus=self.VCPUS)
         compute_environment = batch.ComputeEnvironment(self, 'my_environment',
                                                        compute_resources=compute_resources)
         return compute_environment
@@ -149,10 +164,17 @@ class PictionaryStack(core.Stack):
         lambda_function = lambda_.Function(self, 'my_lambda',
                                            handler='main.handler',
                                            runtime=lambda_.Runtime.PYTHON_3_7,
-                                           code=lambda_.Code.from_asset('lambda'))
-        policy = iam.PolicyStatement(actions=['batch:SubmitJob'],
-                                     resources=["arn:aws:batch:*:*:*"])
-        lambda_function.add_to_role_policy(policy)
+                                           code=lambda_.Code.from_asset('lambda'),
+                                           timeout=core.Duration.minutes(15)
+                                           )
+        batch_policy = iam.PolicyStatement(actions=['batch:SubmitJob'],
+                                           resources=["arn:aws:batch:*:*:*"])
+        s3_policy = iam.PolicyStatement(actions=['s3:ListBucket',
+                                                 's3:GetBucketLocation'],
+                                        resources=[self.picture_bucket.bucket_arn,
+                                                   f'{self.picture_bucket.bucket_arn}/*'])
+        lambda_function.add_to_role_policy(batch_policy)
+        lambda_function.add_to_role_policy(s3_policy)
         return lambda_function
 
     def setup_api(self):
