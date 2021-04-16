@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.2-cudnn8-devel-ubuntu18.04
+FROM nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu20.04
 
 ENV PATH "$PATH:/root/.local/bin"
 
@@ -10,6 +10,8 @@ RUN apt-get update && \
 
 RUN pip install deep-daze boto3
 
-COPY main.py ./
+COPY main.py download.py ./
+
+RUN python3 download.py
 
 CMD python3 main.py --prompt $prompt --bucket $bucket

@@ -1,11 +1,12 @@
 {
   "pictionary": {
-    "pictureBucket": "pictionary-mypicturebucket4cd3a363-boo9aij7iy6n",
-    "jobQueue": "arn:aws:batch:eu-west-1:068121675185:job-queue/myjobqueue10DE9356-5069b9662a0a830",
-    "apiEndpoint": "https://5ol7tndiij.execute-api.eu-west-1.amazonaws.com/prod/",
+    "pictureBucket": "pictionary-mypicturebucket4cd3a363-1sr0fq2atd2po",
+    "jobQueue": "arn:aws:batch:eu-west-1:068121675185:job-queue/myjobqueue10DE9356-a2481ecf7128fb6",
+    "apiEndpoint": "https://lsi7mucz6l.execute-api.eu-west-1.amazonaws.com/prod/",
     "websiteURL": "https://pictionary.pbatch.net",
-    "myapiEndpointF52D9E64": "https://5ol7tndiij.execute-api.eu-west-1.amazonaws.com/prod/",
+    "myapiEndpointF52D9E64": "https://lsi7mucz6l.execute-api.eu-west-1.amazonaws.com/prod/",
+    "region": "eu-west-1",
     "deploymentBucket": "pictionary.pbatch.net",
-    "jobDefinition": "arn:aws:batch:eu-west-1:068121675185:job-definition/pictionary:10"
+    "jobDefinition": "arn:aws:batch:eu-west-1:068121675185:job-definition/pictionary:18"
   }
 }

@@ -28,7 +28,8 @@ def create_image(prompt, bucket):
     save_path = f'./{no_space_prompt}.jpg'
     for seed in range(3):
         s3_path = f'prompt={no_space_prompt}-seed={seed}.jpg'
-        run_test_writer(s3_path, save_path)
+        # run_test_writer(s3_path, save_path)
+        run_deep_daze(prompt, seed)
         s3_client.upload_file(save_path, bucket, s3_path)
 
 

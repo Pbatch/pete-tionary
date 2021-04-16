@@ -7,24 +7,30 @@ function Root() {
   const [prompt, setPrompt] = useState('')
   const [urls, setUrls] = useState([])
 
-  function fetchUrls() {
+  function submitBatchJob() {
     const payload = {'jobDefinition': CloudConstants['pictionary']['jobDefinition'],
                      'jobQueue': CloudConstants['pictionary']['jobQueue'],
                      'bucket': CloudConstants['pictionary']['pictureBucket'],
                      'prompt': prompt}
-    fetch(CloudConstants['pictionary']['apiEndpoint'],
-    {
-        method: 'POST',
-        body: JSON.stringify(payload)
+    fetch(CloudConstants['pictionary']['apiEndpoint'], {
+      method: 'POST',
+      body: JSON.stringify(payload)
     })
-    .then(response => response.text())
-    .then(promise => setUrls(JSON.parse(promise)['urls']))
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (prompt) {
-      fetchUrls()        
+      // submitBatchJob()    
+      const newUrls = Array(3)
+      const region = CloudConstants["pictionary"]["region"]
+      const bucket = CloudConstants["pictionary"]["pictureBucket"]
+      var i;
+      for (i=0; i<3; i++) {
+        newUrls[i] = `https://s3-${region}.amazonaws.com/${bucket}/prompt=${prompt}-seed=${i}.jpg`
+      }  
+      setUrls(newUrls)
+      console.log(urls)
     } 
   }
 

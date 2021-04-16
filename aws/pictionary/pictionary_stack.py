@@ -29,14 +29,14 @@ class PictionaryStack(core.Stack):
     PUBLIC_SUBNET_IDS = ['subnet-f0ac3faa',
                          'subnet-27e1b741', 
                          'subnet-4df5d405']
-    INSTANCE_TYPE = 'm4.xlarge'
-    MEMORY_LIMIT_MIB = 8000
-    GPU_COUNT = 0
+    # A p2.xlarge instance has 4 vcpus, 61 GiB memory and costs $0.90 ph
+    # A p3.2xlarge instance has 8 vcpus, 61 GiB memory and costs $3.06 ph
+    # INSTANCE_TYPE = 'm4.xlarge'
+    # VCPUS = 4
+    # MEMORY_LIMIT_MIB = 8000
+    INSTANCE_TYPE = 'p2.xlarge'
     VCPUS = 4
-    # INSTANCE_TYPE = 'p3.2xlarge'
-    # MEMORY_LIMIT_MIB = 15000
-    # GPU_COUNT = 1
-    # VCPUS = 8
+    MEMORY_LIMIT_MIB = 8000
 
     def setup_website_bucket(self):
         website_bucket = s3.Bucket(self, 'my_website_bucket',
@@ -119,10 +119,9 @@ class PictionaryStack(core.Stack):
         role.add_to_policy(policy)
         image = ecs.ContainerImage.from_ecr_repository(self.repository, tag='latest')
         container = batch.JobDefinitionContainer(image=image,
-                                                 memory_limit_mib=self.MEMORY_LIMIT_MIB,
                                                  job_role=role,
-                                                 gpu_count=self.GPU_COUNT,
-                                                 vcpus=self.VCPUS)
+                                                 vcpus=self.VCPUS,
+                                                 memory_limit_mib=self.MEMORY_LIMIT_MIB)
         return container
 
     def setup_vpc(self):
@@ -134,7 +133,6 @@ class PictionaryStack(core.Stack):
 
     def setup_compute_environment(self):
         image = ec2.MachineImage.generic_linux({self.REGION: self.EC2_AMI})
-        # A p2.2xlarge instance has 8 vcpus, 61 GiB memory and costs $3.06 per Hour
         instance_type = ec2.InstanceType(self.INSTANCE_TYPE)
         # Restrict the compute environment to 1 instance
         compute_resources = batch.ComputeResources(vpc=self.vpc,
@@ -164,8 +162,7 @@ class PictionaryStack(core.Stack):
         lambda_function = lambda_.Function(self, 'my_lambda',
                                            handler='main.handler',
                                            runtime=lambda_.Runtime.PYTHON_3_7,
-                                           code=lambda_.Code.from_asset('lambda'),
-                                           timeout=core.Duration.minutes(15)
+                                           code=lambda_.Code.from_asset('lambda')
                                            )
         batch_policy = iam.PolicyStatement(actions=['batch:SubmitJob'],
                                            resources=["arn:aws:batch:*:*:*"])
@@ -206,7 +203,8 @@ class PictionaryStack(core.Stack):
              'jobQueue': self.job_queue.job_queue_name,
              'jobDefinition': self.job_definition.job_definition_name,
              'websiteURL': f'https://{self.SITE_DOMAIN}',
-             'apiEndpoint': self.api.url
+             'apiEndpoint': self.api.url,
+             'region': self.region
              }
         for key, value in d.items():
             core.CfnOutput(self, key, value=value)
