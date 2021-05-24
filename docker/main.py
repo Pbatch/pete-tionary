@@ -2,33 +2,29 @@ import boto3
 from deep_daze import Imagine
 import argparse
 
-s3_client = boto3.client('s3')
-
-
-def run_deep_daze(prompt, seed, n_iterations=100):
-    model = Imagine(text=prompt,
+def run_deep_daze(prompt, seed, 
+                  n_iterations=100,
+                  num_layers=20,
+                  lr=4e-5):
+    model = Imagine(text=prompt.replace('_', ' '),
                     image_width=128,
-                    num_layers=42,
+                    num_layers=num_layers,
                     batch_size=64,
                     gradient_accumulate_every=1,
                     epochs=1,
                     seed=seed,
-                    save_every=n_iterations,
+                    lr=lr,
+                    save_progress=False,
                     iterations=n_iterations)
     model()
 
 
-def run_test_writer(s3_path, save_path):
-    with open(save_path, 'w') as f:
-        f.write(s3_path)
-
-
 def create_image(prompt, bucket):
-    no_space_prompt = prompt.replace(" ", "_")
-    save_path = f'./{no_space_prompt}.jpg'
+    save_path = f'./{prompt}.jpg'
+    s3_client = boto3.client('s3')
+
     for seed in range(3):
-        s3_path = f'prompt={no_space_prompt}-seed={seed}.jpg'
-        # run_test_writer(s3_path, save_path)
+        s3_path = f'prompt={prompt}-seed={seed}.jpg'
         run_deep_daze(prompt, seed)
         s3_client.upload_file(save_path, bucket, s3_path)
 
