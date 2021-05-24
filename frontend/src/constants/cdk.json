@@ -1,0 +1,15 @@
+{
+  "pictionary": {
+    "pictureBucket": "pictionary-mypicturebucket4cd3a363-8hk0i84wq3vf",
+    "mylambdaapiEndpointA8C81370": "https://wj5q79wobf.execute-api.eu-west-1.amazonaws.com/prod/",
+    "graphqlUrl": "https://yjqnglpaijdxncda5p5ymlahfy.appsync-api.eu-west-1.amazonaws.com/graphql",
+    "jobQueue": "arn:aws:batch:eu-west-1:068121675185:job-queue/myjobqueue10DE9356-2063076bb985257",
+    "websiteUrl": "https://pictionary.pbatch.net",
+    "userPoolClientId": "3gabuvp4c9s3blv91ign5kis7j",
+    "lambdaUrl": "https://wj5q79wobf.execute-api.eu-west-1.amazonaws.com/prod/",
+    "region": "eu-west-1",
+    "deploymentBucket": "pictionary.pbatch.net",
+    "userPoolId": "eu-west-1_i4wPymzCk",
+    "jobDefinition": "arn:aws:batch:eu-west-1:068121675185:job-definition/pictionary:36"
+  }
+}

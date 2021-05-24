@@ -1,0 +1,5 @@
+export const WAIT_FOR_LOBBY = 'WAIT_FOR_LOBBY'
+export const WAIT_FOR_PLAYERS = 'WAIT_FOR_PLAYERS'
+export const WRITE_PROMPT = 'WRITE_PROMPT'
+export const WAIT_FOR_IMAGES = 'WAIT_FOR_IMAGES'
+export const SELECT_IMAGE = 'SELECT_IMAGE'

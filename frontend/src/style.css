@@ -1,0 +1,43 @@
+body {
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  font-size: 20px;
+  margin: 0 auto;
+  color: white;
+}
+
+#imageContainer {
+  margin: 0 auto;
+  padding-top: 100px;
+  width: 800px;
+  height: 254px;
+}
+
+#form {
+  margin: 0 auto;
+  padding-top: 50px;
+}
+
+#input {
+  width: 300px;
+}
+
+#button {
+  width: 100px;
+}
+
+img {
+  border: 1px solid black;
+  width: 254px;
+  height: 254px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.grid {
+  display: grid;
+  text-align: center;
+  row-gap: 10px;
+  column-gap: 10px;
+}

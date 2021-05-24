@@ -1,0 +1,125 @@
+input CreateMessageInput {
+	url: String!
+	username: String!
+	round: Int!
+}
+
+input DeleteMessageInput {
+	id: ID!
+}
+
+type Message {
+	id: ID!
+	url: String!
+	username: String!
+	round: Int!
+}
+
+type MessageConnection {
+	items: [Message]
+	nextToken: String
+}
+
+type Mutation {
+	createMessage(input: CreateMessageInput!): Message
+	updateMessage(input: UpdateMessageInput!): Message
+	deleteMessage(input: DeleteMessageInput!): Message
+}
+
+type Query {
+	getMessage(id: ID!): Message
+	listMessages(filter: TableMessageFilterInput, limit: Int, nextToken: String): MessageConnection
+}
+
+type Subscription {
+	onCreateMessage(
+		id: ID,
+		url: String,
+		username: String,
+		round: Int
+	): Message
+		@aws_subscribe(mutations: ["createMessage"])
+	onUpdateMessage(
+		id: ID,
+		url: String,
+		username: String,
+		round: Int
+	): Message
+		@aws_subscribe(mutations: ["updateMessage"])
+	onDeleteMessage(
+		id: ID,
+		url: String,
+		username: String,
+		round: Int
+	): Message
+		@aws_subscribe(mutations: ["deleteMessage"])
+}
+
+input TableBooleanFilterInput {
+	ne: Boolean
+	eq: Boolean
+}
+
+input TableFloatFilterInput {
+	ne: Float
+	eq: Float
+	le: Float
+	lt: Float
+	ge: Float
+	gt: Float
+	contains: Float
+	notContains: Float
+	between: [Float]
+}
+
+input TableIDFilterInput {
+	ne: ID
+	eq: ID
+	le: ID
+	lt: ID
+	ge: ID
+	gt: ID
+	contains: ID
+	notContains: ID
+	between: [ID]
+	beginsWith: ID
+}
+
+input TableIntFilterInput {
+	ne: Int
+	eq: Int
+	le: Int
+	lt: Int
+	ge: Int
+	gt: Int
+	contains: Int
+	notContains: Int
+	between: [Int]
+}
+
+input TableMessageFilterInput {
+	id: TableIDFilterInput
+	url: TableStringFilterInput
+	username: TableStringFilterInput
+	round: TableIntFilterInput
+}
+
+input TableStringFilterInput {
+	ne: String
+	eq: String
+	le: String
+	lt: String
+	ge: String
+	gt: String
+	contains: String
+	notContains: String
+	between: [String]
+	beginsWith: String
+}
+
+input UpdateMessageInput {
+	id: ID!
+	url: String
+	username: String
+	round: Int
+}
