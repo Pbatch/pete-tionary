@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import Authenticator from './authenticator.js'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
-import Game from './game.js'
+import App from './app.js'
 import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components'
 import { SET_USERNAME } from '../constants/action-types'
 
@@ -23,7 +23,7 @@ const Root = () => {
       })
   }, [setUsername])
 
-  return (authState === AuthState.SignedIn && username ? <Game /> : <Authenticator />)
+  return (authState === AuthState.SignedIn && username ? <App /> : <Authenticator />)
 }
 
 export default Root

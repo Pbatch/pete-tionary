@@ -22,19 +22,33 @@ const Dream = ({ createMessage, mode, setMode }) => {
     setMode(WAIT_FOR_PLAYERS)
   }
 
+  const imageStyle = {...imageStyle_, width: `${100/(state.urls.length + 2)}vw`}
+
   const images = state.urls.map((url) => {
     return (
-      <img key={v4()} src={url} alt={url} onClick={handleClick} />
+      <div>
+        <img key={v4()} src={url} alt={url} onClick={handleClick} style={imageStyle} />
+        <div style={captionStyle}>INSERT CAPTION HERE</div>
+      </div>
       )
     })
-
-  const imageContainerStyle = {gridTemplateColumns: `repeat(${images.length}, 1fr)`}
-
+ 
   return (
-    <div id='imageContainer' className='grid' style={imageContainerStyle}>
+    <div style={dreamStyle}>
       {images}
     </div>
   )
 }
+
+const imageStyle_ = {border: '1px solid black'}
+
+const dreamStyle = {display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    columnGap: '25px',
+                    margin: '10px',
+                    minHeight: '30vw'}
+
+const captionStyle = {padding: '10px'}
 
 export default Dream

@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import Root from './components/root'
-import './style.css'
 import Amplify from 'aws-amplify'
 import { AMPLIFY_CONFIG } from './constants/config'
 import configureStore from './configure-store'

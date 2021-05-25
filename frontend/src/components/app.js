@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
-import { LAMBDA_CONFIG } from '../constants/config.js'
-import { CreateMessage } from '../graphql/mutations.js'
-import { OnCreateMessage } from '../graphql/subscriptions.js'
-import { ListMessages } from '../graphql/queries.js'
+import { LAMBDA_CONFIG } from '../constants/config'
+import { CreateMessage } from '../graphql/mutations'
+import { OnCreateMessage } from '../graphql/subscriptions'
+import { ListMessages } from '../graphql/queries'
 import { API, graphqlOperation } from 'aws-amplify'
 import { SET_URLS, SET_ROUND, SET_MODE } from '../constants/action-types'
-import { WAIT_FOR_IMAGES, SELECT_IMAGE, WRITE_PROMPT } from '../constants/modes'
-import Form from './form.js'
-import Dream from './dream.js'
+import { WAIT_FOR_IMAGES, SELECT_IMAGE, WRITE_PROMPT, END_OF_GAME } from '../constants/modes'
+import Form from './form'
+import Dream from './dream'
+import Info from './info'
 
 const Game = () => {
   const state = useSelector(state => state, shallowEqual)
@@ -28,19 +29,9 @@ const Game = () => {
 
   let subscription
   const [prompt, setPrompt] = useState('')
-
-  console.log('state', state)
-
-  const calculateUrl = (messages, nUsers, round, username) => {
-    const roundEntries = messages.filter((message) => message.round === round) 
-    console.log('round', round)
-    console.log('round entries', roundEntries)
-    const sortedEntries = roundEntries
-    .sort((m1, m2) => (m1.username > m2.username) - (m1.username < m2.username))
-    const usernameIndex = sortedEntries.findIndex((m) => m.username === username)
-    const urlIndex = ((usernameIndex + round) % nUsers + nUsers) % nUsers
-    const url = sortedEntries[urlIndex].url
-    return url
+  
+  const mod = (a, b) => {
+    return ((a % b) + b) % b
   }
 
   useEffect(() => {
@@ -50,26 +41,36 @@ const Game = () => {
       next: async () => {
         const messageData = await API.graphql(graphqlOperation(ListMessages))
         const messages = messageData.data.listMessages.items 
-        const nUsers = messages.filter((message) => message.round === 0).length
+        .sort((m1, m2) => (m1.username > m2.username) - (m1.username < m2.username))
+        const usernames = messages.filter((message) => message.round === 0).map(message => message.username)
+        const nUsers = usernames.length
+        const usernameIndex = usernames.indexOf(state.username)
         const newRound = state.round + 1
         const currentRoundEntries = messages.filter((message) => message.round === newRound) 
+
+        // Not everyone's images are ready yet
         if (nUsers !== currentRoundEntries.length) return
+
+        let newUrls
         if (newRound === nUsers) {
-          const newUrls = Array(nUsers)
-          for (let round=0; round < nUsers; round++) {
-            console.log('round', round)
-            newUrls[round] = calculateUrl(messages, nUsers, round+1, state.username)
+          // Get the usernames picture from the 1st round, 
+          // the previous usernames picture from the 2nd round etc.
+          
+          newUrls = Array(nUsers)
+          let roundEntries
+          for (let round=1; round <= nUsers; round++) {
+            roundEntries = messages.filter((message) => message.round === round)
+            newUrls[round-1] = roundEntries[mod(usernameIndex - round + 1, nUsers)].url 
           }
-          setUrls(newUrls)
-          setPrompt('')
+          setMode(END_OF_GAME)
         }
         else {
-          const newUrls = [calculateUrl(messages, nUsers, newRound, state.username)] 
-          setUrls(newUrls)
+          newUrls = [currentRoundEntries[mod(usernameIndex + 1, nUsers)].url]
           setRound(newRound)
-          setPrompt('')
           setMode(WRITE_PROMPT)
         }
+        setUrls(newUrls)
+        setPrompt('')
       }
     })
     return () =>  {
@@ -133,7 +134,10 @@ const Game = () => {
   }
 
   return (
-    <div id='game'>
+    <div style={appStyle}>
+      <Info
+        mode={state.mode}
+      />
       <Dream 
         createMessage={createMessage}
         mode={state.mode}
@@ -144,9 +148,12 @@ const Game = () => {
         prompt={prompt}
         setPrompt={setPrompt}
         handleSubmit={handleSubmit} 
-       />
+      />
     </div>
   )
 }
+const appStyle = {textAlign: 'center', 
+                  backgroundColor: 'white',
+                  margin: '10px'}
 
 export default Game

@@ -19,6 +19,7 @@ cdk deploy --outputs-file "../frontend/src/constants/cdk.json"
 * Can shave off 12 seconds from Deep Daze by removing the clamp in `forward()`
 * Can change the resolver for listMessages so that a filter can be added
 * Can make the S3 URL checks a graphQL subscription (instead of pinging from Lambda)
+* Set the hidden_size to 512
 
 ## Modes
 

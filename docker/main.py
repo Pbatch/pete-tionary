@@ -2,6 +2,7 @@ import boto3
 from deep_daze import Imagine
 import argparse
 
+
 def run_deep_daze(prompt, seed, 
                   n_iterations=100,
                   num_layers=20,
