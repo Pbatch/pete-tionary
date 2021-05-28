@@ -1,34 +1,37 @@
 import { v4 } from 'node-uuid'
-import { SET_URLS } from '../constants/action-types'
+import { SET_IMAGES } from '../constants/action-types'
 import { useCallback } from 'react'
 import { useDispatch, useSelector, shallowEqual } from 'react-redux'
-import { WAIT_FOR_PLAYERS, SELECT_IMAGE } from '../constants/modes'
+import { WAIT_FOR_PLAYERS, SELECT_IMAGE, END_OF_GAME } from '../constants/modes'
 
 const Dream = ({ createMessage, mode, setMode }) => {
   const dispatch = useDispatch()
   const state = useSelector(state => state, shallowEqual)
-  const setUrls = useCallback(
-    (urls) => dispatch({ type: SET_URLS, urls }),
+  const setImages = useCallback(
+    (images) => dispatch({ type: SET_IMAGES, images }),
     [dispatch]
   )
 
   async function handleClick(e) {
     e.preventDefault()
     if (mode !== SELECT_IMAGE) return
-    const newUrl = e.target.src
-    const message = {url: newUrl, username: state.username, round: state.round + 1}
-    createMessage(message)
-    setUrls([newUrl])
+    const newImages = [{'url': e.target.src,
+                        'username': state.username,
+                        'prompt': state.prompt
+                       }]
+    createMessage(e.target.src, state.round + 1)
+    setImages(newImages)
     setMode(WAIT_FOR_PLAYERS)
   }
 
-  const imageStyle = {...imageStyle_, width: `${100/(state.urls.length + 2)}vw`}
+  const imageStyle = {...imageStyle_, width: `${100/(state.images.length + 2)}vw`}
 
-  const images = state.urls.map((url) => {
+  const images = state.images.map(({ url, username, prompt }) => {
+    const caption = (mode === END_OF_GAME) ? `${username}: "${prompt}"` : '' 
     return (
-      <div>
-        <img key={v4()} src={url} alt={url} onClick={handleClick} style={imageStyle} />
-        <div style={captionStyle}>INSERT CAPTION HERE</div>
+      <div key={v4()}>
+        <img src={url} alt={url} onClick={handleClick} style={imageStyle} />
+        <div style={captionStyle}>{caption}</div>
       </div>
       )
     })
@@ -49,6 +52,9 @@ const dreamStyle = {display: 'flex',
                     margin: '10px',
                     minHeight: '30vw'}
 
-const captionStyle = {padding: '10px'}
+const captionStyle = {padding: '10px',
+                      fontFamily: 'Courier New, monospace',
+                      textAlign: 'center',
+                      fontSize: '2vw'}
 
 export default Dream

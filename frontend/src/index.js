@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import Root from './components/root'
+import App from './components/app'
 import Amplify from 'aws-amplify'
 import { AMPLIFY_CONFIG } from './constants/config'
 import configureStore from './configure-store'
@@ -11,7 +11,7 @@ const store = configureStore()
 
 ReactDOM.render(
   <Provider store={store}>
-    <Root />
+    <App />
   </Provider>,
   document.getElementById('root')
 )

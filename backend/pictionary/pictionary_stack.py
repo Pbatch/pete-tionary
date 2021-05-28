@@ -68,13 +68,33 @@ class PictionaryStack(core.Stack):
                                                   user_pool=self.user_pool)
         return user_pool_client
 
-    def setup_ddb_table(self):
+    def setup_message_table(self):
         partition_key = ddb.Attribute(name='id', type=ddb.AttributeType.STRING)
-        table = ddb.Table(self, 'my_table',
-                          partition_key=partition_key,
-                          billing_mode=ddb.BillingMode.PAY_PER_REQUEST,
-                          removal_policy=core.RemovalPolicy.DESTROY)
-        return table
+        message_table = ddb.Table(self, 'my_message_table',
+                                  partition_key=partition_key,
+                                  billing_mode=ddb.BillingMode.PAY_PER_REQUEST,
+                                  removal_policy=core.RemovalPolicy.DESTROY)
+        # role = iam.Role(self, 'my_message_table_role',
+        #                 assumed_by=iam.ServicePrincipal('dynamodb.amazonaws.com'))
+        # policy = iam.PolicyStatement(effect=iam.Effect.ALLOW,
+        #                              resources=[f'{message_table.table_arn}/index/messages-by-room-id'],
+        #                              actions=['dynamodb:Query'])
+        # role.add_to_policy(policy)
+        # partition_key = ddb.Attribute(name='id', type=ddb.AttributeType.STRING)
+        # sort_key = ddb.Attribute(name='name', type=ddb.AttributeType.STRING)
+        # message_table.add_global_secondary_index(index_name='messages-by-room-id',
+        #                                          partition_key=partition_key,
+        #                                          sort_key=sort_key)
+
+        return message_table
+
+    def setup_room_table(self):
+        partition_key = ddb.Attribute(name='id', type=ddb.AttributeType.STRING)
+        room_table = ddb.Table(self, 'my_room_table',
+                               partition_key=partition_key,
+                               billing_mode=ddb.BillingMode.PAY_PER_REQUEST,
+                               removal_policy=core.RemovalPolicy.DESTROY)
+        return room_table
 
     def setup_graphql_api(self):
         user_pool_config = appsync.UserPoolConfig(user_pool=self.user_pool,
@@ -88,27 +108,51 @@ class PictionaryStack(core.Stack):
                                          authorization_config=authorization_config)
         return graphql_api
 
-    def setup_data_source(self):
-        data_source = self.graphql_api.add_dynamo_db_data_source(id='my_data_source', table=self.table)
-        return data_source
+    def setup_message_table_data_source(self):
+        message_table_data_source = self.graphql_api.add_dynamo_db_data_source(id='my_message_table_data_source',
+                                                                               table=self.message_table)
+        return message_table_data_source
+
+    def setup_room_table_data_source(self):
+        room_table_data_source = self.graphql_api.add_dynamo_db_data_source(id='my_room_table_data_source',
+                                                                            table=self.room_table)
+        return room_table_data_source
 
     def setup_create_message_resolver(self):
         key = appsync.PrimaryKey.partition('id').auto()
         values = appsync.Values.projecting('input')
         request_mapping_template = appsync.MappingTemplate.dynamo_db_put_item(key=key, values=values)
         response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
-        self.data_source.create_resolver(type_name='Mutation',
-                                         field_name='createMessage',
-                                         request_mapping_template=request_mapping_template,
-                                         response_mapping_template=response_mapping_template)
+        self.message_table_data_source.create_resolver(type_name='Mutation',
+                                                       field_name='createMessage',
+                                                       request_mapping_template=request_mapping_template,
+                                                       response_mapping_template=response_mapping_template)
 
     def setup_list_messages_resolver(self):
         request_mapping_template = appsync.MappingTemplate.dynamo_db_scan_table()
         response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
-        self.data_source.create_resolver(type_name='Query',
-                                         field_name='listMessages',
-                                         request_mapping_template=request_mapping_template,
-                                         response_mapping_template=response_mapping_template)
+        self.message_table_data_source.create_resolver(type_name='Query',
+                                                       field_name='listMessages',
+                                                       request_mapping_template=request_mapping_template,
+                                                       response_mapping_template=response_mapping_template)
+
+    def setup_create_room_resolver(self):
+        key = appsync.PrimaryKey.partition('id').auto()
+        values = appsync.Values.projecting('input')
+        request_mapping_template = appsync.MappingTemplate.dynamo_db_put_item(key=key, values=values)
+        response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
+        self.room_table_data_source.create_resolver(type_name='Mutation',
+                                                    field_name='createRoom',
+                                                    request_mapping_template=request_mapping_template,
+                                                    response_mapping_template=response_mapping_template)
+
+    def setup_list_rooms_resolver(self):
+        request_mapping_template = appsync.MappingTemplate.dynamo_db_scan_table()
+        response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
+        self.room_table_data_source.create_resolver(type_name='Query',
+                                                    field_name='listRooms',
+                                                    request_mapping_template=request_mapping_template,
+                                                    response_mapping_template=response_mapping_template)
 
     def setup_website_bucket(self):
         website_bucket = s3.Bucket(self, 'my_website_bucket',
@@ -260,11 +304,15 @@ class PictionaryStack(core.Stack):
         self.auth_lambda = self.setup_auth_lambda()
         self.user_pool = self.setup_user_pool()
         self.user_pool_client = self.setup_user_pool_client()
-        self.table = self.setup_ddb_table()
+        self.message_table = self.setup_message_table()
+        self.room_table = self.setup_room_table()
         self.graphql_api = self.setup_graphql_api()
-        self.data_source = self.setup_data_source()
+        self.message_table_data_source = self.setup_message_table_data_source()
+        self.room_table_data_source = self.setup_room_table_data_source()
         self.setup_create_message_resolver()
         self.setup_list_messages_resolver()
+        self.setup_create_room_resolver()
+        self.setup_list_rooms_resolver()
         self.website_bucket = self.setup_website_bucket()
         self.zone = self.setup_zone()
         self.distribution = self.setup_cloudfront_distribution()

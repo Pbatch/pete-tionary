@@ -3,20 +3,18 @@ from deep_daze import Imagine
 import argparse
 
 
-def run_deep_daze(prompt, seed, 
-                  n_iterations=100,
-                  num_layers=20,
-                  lr=4e-5):
+def run_deep_daze(prompt, seed):
     model = Imagine(text=prompt.replace('_', ' '),
                     image_width=128,
-                    num_layers=num_layers,
+                    num_layers=20,
                     batch_size=64,
                     gradient_accumulate_every=1,
                     epochs=1,
                     seed=seed,
-                    lr=lr,
+                    lr=4e-5,
                     save_progress=False,
-                    iterations=n_iterations)
+                    iterations=100,
+                    hidden_size=512)
     model()
 
 

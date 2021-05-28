@@ -1,16 +1,29 @@
 import gql from 'graphql-tag';
 
 export const CreateMessage = gql`
-  mutation($url: String!, $username: String!, $round: Int!) {
+  mutation($url: String!, $username: String!, $round: Int!, $room: String!) {
     createMessage(input: {
+      room: $room
+      round: $round
       url: $url
       username: $username
-      round: $round
     }) {
       id 
+      room
+      round
       url
       username
-      round
+    }
+  }
+`
+
+export const CreateRoom = gql`
+  mutation($name: String!) {
+    createRoom(input: {
+      name: $name
+    }) {
+      id 
+      name
     }
   }
 `

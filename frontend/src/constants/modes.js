@@ -1,6 +1,7 @@
-export const WAIT_FOR_LOBBY = 'WAIT_FOR_LOBBY'
+export const WAIT_FOR_START = 'WAIT_FOR_START'
 export const WAIT_FOR_PLAYERS = 'WAIT_FOR_PLAYERS'
 export const WRITE_PROMPT = 'WRITE_PROMPT'
 export const WAIT_FOR_IMAGES = 'WAIT_FOR_IMAGES'
 export const SELECT_IMAGE = 'SELECT_IMAGE'
+export const SELECT_ROOM = 'SELECT_ROOM'
 export const END_OF_GAME = 'END_OF_GAME'

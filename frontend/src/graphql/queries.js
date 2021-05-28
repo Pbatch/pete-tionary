@@ -5,9 +5,21 @@ export const ListMessages = gql`
     listMessages {
       items {
         id 
+        room
+        round
         url
         username
-        round
+      }
+    }
+  }
+`
+
+export const ListRooms = gql`
+  query {
+    listRooms {
+      items {
+        id 
+        name
       }
     }
   }

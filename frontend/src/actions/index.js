@@ -1,8 +1,9 @@
 import { 
   SET_USERNAME,
-  SET_URLS,
+  SET_IMAGES,
   SET_ROUND,
-  SET_MODE
+  SET_MODE,
+  SET_ADMIN
 } from '../constants/action-types'
 
 export const setUsername = (username) => ({
@@ -10,9 +11,9 @@ export const setUsername = (username) => ({
     username
   })
 
-export const setUrls = (urls) => ({
-    type: SET_URLS,
-    urls
+export const setImages = (images) => ({
+    type: SET_IMAGES,
+    images
   })
 
 export const setRound = (round) => ({
@@ -23,4 +24,9 @@ export const setRound = (round) => ({
 export const setMode = (mode) => ({
   type: SET_MODE,
   mode
+})
+
+export const setAdmin = (admin) => ({
+  type: SET_ADMIN,
+  admin
 })

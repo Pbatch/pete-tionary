@@ -3,7 +3,8 @@ import {
   WAIT_FOR_IMAGES,
   WAIT_FOR_PLAYERS,
   SELECT_IMAGE,
-  END_OF_GAME
+  END_OF_GAME,
+  WAIT_FOR_START
 } from '../constants/modes'
 
 const Info = ({mode}) => {
@@ -12,19 +13,26 @@ const Info = ({mode}) => {
       case WRITE_PROMPT:
         return 'Please write a prompt and click submit!'
       case WAIT_FOR_IMAGES:
-        return 'Your images are being generated. Sit back and relax...'
+        return 'Your images are being generated, sit back and relax...'
       case SELECT_IMAGE:
-        return 'Your images have been generated. Please select the image that best matches your prompt.'
+        return 'Your images have been generated, select the one that best matches your prompt.'
       case WAIT_FOR_PLAYERS:
-        return 'Other players are yet to select an image. Tell them to hurry up!'
+        return 'Waiting for other players...'
       case END_OF_GAME:
-        return 'That\'s the end of the game, have a look at how your image evolved over time.'
+        return 'That\'s the end of the game, see how your image evolved over time.'
+      case WAIT_FOR_START:
+        return 'Waiting for the admin to start the game.'
       default:
         return 'INSERT INSTRUCTION HERE'
     }
   }
 
-  return (<div>{info()}</div>)
+  return (<div style={infoStyle}>{info()}</div>)
 }
 
+const infoStyle = {
+  fontFamily: 'Courier New, monospace',
+  textAlign: 'center',
+  fontSize: '25px'
+}
 export default Info

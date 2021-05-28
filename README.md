@@ -16,30 +16,18 @@ cdk deploy --outputs-file "../frontend/src/constants/cdk.json"
 
 ## Future improvements
 
+* Create our own version of Deep Daze
 * Can shave off 12 seconds from Deep Daze by removing the clamp in `forward()`
 * Can change the resolver for listMessages so that a filter can be added
 * Can make the S3 URL checks a graphQL subscription (instead of pinging from Lambda)
-* Set the hidden_size to 512
+* Create rooms
 
-## Modes
+## Tables
 
-0.) Wait for lobby
+* Message table and room table
+* First person to create room becomes the admin. They start the game by deleting the room entry. This changes the mode of all the players to WRITE_PROMPT.
 
-* How do rooms work?
+## Subscriptions
 
-1.) Wait for players
-
-* Is there a room owner?
-* Button disabled, input disabled, choice disabled
-
-2.) Write prompt
-
-* Button not disabled, input not disabled, choice disabled
-
-3.) Wait for images
-
-* Button disabled, input disabled, choice disabled
-
-4.) Select image
-
-* Button disabled, input disabled, choice enabled
+* Players have subscription to room table to know when the game is starting
+* Players have subscription to messages to know when the game is progressing

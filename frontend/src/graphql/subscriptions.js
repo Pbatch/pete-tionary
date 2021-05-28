@@ -4,9 +4,19 @@ export const OnCreateMessage = gql`
   subscription {
     onCreateMessage {
       id 
+      room
+      round
       url
       username
-      round
     }
   }
+`
+
+export const OnCreateRoom = gql`
+subscription {
+  onCreateRoom {
+    id 
+    name
+  }
+}
 `
