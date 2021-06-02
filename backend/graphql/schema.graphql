@@ -20,8 +20,8 @@ type MessageConnection {
 type Mutation {
   createMessage(input: CreateMessageInput!): Message
   createRoom(input: CreateRoomInput!): Room
-  deleteMessage(input: DeleteMessageInput!): Message
-  deleteRoom(input: DeleteRoomInput!): Room
+  deleteMessage(id: ID!): Message
+  deleteRoom(id: ID!): Room
   updateMessage(input: UpdateMessageInput!): Message
   updateRoom(input: UpdateRoomInput!): Room
 }
@@ -44,12 +44,18 @@ type RoomConnection {
 }
 
 type Subscription {
-  onCreateMessage(id: ID, room: String, round: Int, url: String, username: String): Message @aws_subscribe(mutations : ["createMessage"])
-  onCreateRoom(id: ID, name: String): Room @aws_subscribe(mutations : ["createRoom"])
-  onDeleteMessage(id: ID, room: String, round: Int, url: String, username: String): Message @aws_subscribe(mutations : ["deleteMessage"])
-  onDeleteRoom(id: ID, name: String): Room @aws_subscribe(mutations : ["deleteRoom"])
-  onUpdateMessage(id: ID, room: String, round: Int, url: String, username: String): Message @aws_subscribe(mutations : ["updateMessage"])
-  onUpdateRoom(id: ID, name: String): Room @aws_subscribe(mutations : ["updateRoom"])
+  onCreateMessage(id: ID, room: String, round: Int, url: String, username: String): Message
+    @aws_subscribe(mutations : ["createMessage"])
+  onCreateRoom(id: ID, name: String): Room
+    @aws_subscribe(mutations : ["createRoom"])
+  onDeleteMessage(id: ID, room: String, round: Int, url: String, username: String): Message
+    @aws_subscribe(mutations : ["deleteMessage"])
+  onDeleteRoom(id: ID, name: String): Room
+    @aws_subscribe(mutations : ["deleteRoom"])
+  onUpdateMessage(id: ID, room: String, round: Int, url: String, username: String): Message
+    @aws_subscribe(mutations : ["updateMessage"])
+  onUpdateRoom(id: ID, name: String): Room
+    @aws_subscribe(mutations : ["updateRoom"])
 }
 
 input CreateMessageInput {
@@ -61,19 +67,6 @@ input CreateMessageInput {
 
 input CreateRoomInput {
   name: String!
-}
-
-input DeleteMessageInput {
-  id: ID!
-}
-
-input DeleteRoomInput {
-  id: ID!
-}
-
-input TableBooleanFilterInput {
-  eq: Boolean
-  ne: Boolean
 }
 
 input TableFloatFilterInput {

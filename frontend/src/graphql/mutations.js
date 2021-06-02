@@ -27,3 +27,12 @@ export const CreateRoom = gql`
     }
   }
 `
+
+export const DeleteRoom = gql`
+  mutation($id: ID!) {
+    deleteRoom(id: $id) 
+    {
+      id 
+    }
+  }
+`

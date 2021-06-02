@@ -68,6 +68,14 @@ class PictionaryStack(core.Stack):
                                                   user_pool=self.user_pool)
         return user_pool_client
 
+    # def setup_player_table(self):
+    #     partition_key = ddb.Attribute(name='id', type=ddb.AttributeType.STRING)
+    #     player_table = ddb.Table(self, 'my_player_table',
+    #                              partition_key=partition_key,
+    #                              billing_mode=ddb.BillingMode.PAY_PER_REQUEST,
+    #                              removal_policy=core.RemovalPolicy.DESTROY)
+    #     return player_table
+
     def setup_message_table(self):
         partition_key = ddb.Attribute(name='id', type=ddb.AttributeType.STRING)
         message_table = ddb.Table(self, 'my_message_table',
@@ -118,6 +126,11 @@ class PictionaryStack(core.Stack):
                                                                             table=self.room_table)
         return room_table_data_source
 
+    # def setup_player_table_data_source(self):
+    #     player_table_data_source = self.graphql_api.add_dynamo_db_data_source(id='my_player_table_data_source',
+    #                                                                           table=self.player_table)
+    #     return player_table_data_source
+
     def setup_create_message_resolver(self):
         key = appsync.PrimaryKey.partition('id').auto()
         values = appsync.Values.projecting('input')
@@ -140,11 +153,21 @@ class PictionaryStack(core.Stack):
         key = appsync.PrimaryKey.partition('id').auto()
         values = appsync.Values.projecting('input')
         request_mapping_template = appsync.MappingTemplate.dynamo_db_put_item(key=key, values=values)
+
         response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
         self.room_table_data_source.create_resolver(type_name='Mutation',
                                                     field_name='createRoom',
                                                     request_mapping_template=request_mapping_template,
                                                     response_mapping_template=response_mapping_template)
+
+    def setup_delete_room_resolver(self):
+        request_mapping_template = appsync.MappingTemplate.dynamo_db_delete_item('id', 'id')
+        response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
+        self.room_table_data_source.create_resolver(type_name='Mutation',
+                                                    field_name='deleteRoom',
+                                                    request_mapping_template=request_mapping_template,
+                                                    response_mapping_template=response_mapping_template
+                                                    )
 
     def setup_list_rooms_resolver(self):
         request_mapping_template = appsync.MappingTemplate.dynamo_db_scan_table()
@@ -153,6 +176,24 @@ class PictionaryStack(core.Stack):
                                                     field_name='listRooms',
                                                     request_mapping_template=request_mapping_template,
                                                     response_mapping_template=response_mapping_template)
+
+    # def setup_create_player_resolver(self):
+    #     key = appsync.PrimaryKey.partition('id').auto()
+    #     values = appsync.Values.projecting('input')
+    #     request_mapping_template = appsync.MappingTemplate.dynamo_db_put_item(key=key, values=values)
+    #     response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
+    #     self.room_table_data_source.create_resolver(type_name='Mutation',
+    #                                                 field_name='createPlayer',
+    #                                                 request_mapping_template=request_mapping_template,
+    #                                                 response_mapping_template=response_mapping_template)
+
+    # def setup_list_player_resolver(self):
+    #     request_mapping_template = appsync.MappingTemplate.dynamo_db_scan_table()
+    #     response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
+    #     self.room_table_data_source.create_resolver(type_name='Query',
+    #                                                 field_name='listPlayers',
+    #                                                 request_mapping_template=request_mapping_template,
+    #                                                 response_mapping_template=response_mapping_template)
 
     def setup_website_bucket(self):
         website_bucket = s3.Bucket(self, 'my_website_bucket',
@@ -313,6 +354,7 @@ class PictionaryStack(core.Stack):
         self.setup_list_messages_resolver()
         self.setup_create_room_resolver()
         self.setup_list_rooms_resolver()
+        self.setup_delete_room_resolver()
         self.website_bucket = self.setup_website_bucket()
         self.zone = self.setup_zone()
         self.distribution = self.setup_cloudfront_distribution()

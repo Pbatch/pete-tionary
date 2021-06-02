@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { useDispatch } from 'react-redux'
 import { API, graphqlOperation } from 'aws-amplify'
 import { CreateRoom } from '../graphql/mutations'
-import { OnCreateRoom } from '../graphql/subscriptions'
+import { OnCreateRoom, OnDeleteRoom } from '../graphql/subscriptions'
 import { ListRooms } from '../graphql/queries'
 import { sampleSize } from 'lodash'
 import { v4 } from 'node-uuid'
@@ -28,17 +28,22 @@ const Rooms = () => {
   useEffect(() => {
     setMode(SELECT_ROOM)
     setAdmin(false)
-    syncRooms()
-    let subscription = API.graphql(graphqlOperation(OnCreateRoom))
+    fetchAndSetRooms()
+    let createSubscription = API.graphql(graphqlOperation(OnCreateRoom))
     .subscribe({
-      next: () => syncRooms()
+      next: () => fetchAndSetRooms()
+    })
+    let deleteSubscription = API.graphql(graphqlOperation(OnDeleteRoom))
+    .subscribe({
+      next: () => fetchAndSetRooms()
     })
     return () =>  {
-      subscription.unsubscribe()
+      createSubscription.unsubscribe()
+      deleteSubscription.unsubscribe()
     }
-  }, [setMode])
+  }, [])
 
-  async function syncRooms() {
+  async function fetchAndSetRooms() {
     const roomData = await API.graphql(graphqlOperation(ListRooms))
     const rooms = roomData.data.listRooms.items
     setRooms(rooms)
@@ -46,12 +51,13 @@ const Rooms = () => {
 
   async function createRoom() {
     const roomName = sampleSize(alphabet, 4).join('')
-    const room = {'name': roomName }
     const roomData = await API.graphql(graphqlOperation(ListRooms))
     const rooms = roomData.data.listRooms.items
-    const matchingRooms = rooms.filter((m) => m.name === room.name)
+    const matchingRooms = rooms.filter((m) => m.name === roomName)
+
     if (matchingRooms.length === 0) {
-      API.graphql(graphqlOperation(CreateRoom, room))
+      const payload = {'name': roomName, 'started': false}
+      API.graphql(graphqlOperation(CreateRoom, payload))
       setAdmin(true)
       history.push(`/${roomName}`)
     }

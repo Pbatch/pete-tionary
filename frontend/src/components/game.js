@@ -1,13 +1,14 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import { LAMBDA_CONFIG } from '../constants/config'
 import { CreateMessage } from '../graphql/mutations'
-import { OnCreateMessage } from '../graphql/subscriptions'
+import { OnCreateMessage, OnDeleteRoom } from '../graphql/subscriptions'
 import { useLocation } from 'react-router-dom'
-import { ListMessages } from '../graphql/queries'
+import { ListMessages, ListRooms } from '../graphql/queries'
 import { API, graphqlOperation } from 'aws-amplify'
 import { SET_IMAGES, SET_ROUND, SET_MODE } from '../constants/action-types'
 import { WAIT_FOR_START, WAIT_FOR_IMAGES, SELECT_IMAGE, WRITE_PROMPT, END_OF_GAME } from '../constants/modes'
+import Sidebar from './sidebar'
 import Form from './form'
 import Dream from './dream'
 import Info from './info'
@@ -38,12 +39,19 @@ const Game = () => {
   
   const mod = (a, b) => {
     return ((a % b) + b) % b
-  }
+  }  
 
+  const mounted = useRef(false)
   useEffect(() => {
-    setMode(WAIT_FOR_START)
-    createMessage('', 0)
-    let subscription = API.graphql(graphqlOperation(OnCreateMessage))
+    if (!mounted.current) {
+      console.log('Initial render')
+      setMode(WAIT_FOR_START)
+      setImages([])
+      setRound(0)
+      createMessage('', 0)
+      mounted.current = true
+    }
+    let messageSubscription = API.graphql(graphqlOperation(OnCreateMessage))
     .subscribe({
       next: async () => {
         const messageData = await API.graphql(graphqlOperation(ListMessages))
@@ -86,10 +94,22 @@ const Game = () => {
         setImages(newImages)
       }
     })
+    let roomSubscription = API.graphql(graphqlOperation(OnDeleteRoom))
+    .subscribe({
+      next: async() => {
+        const roomData = await API.graphql(graphqlOperation(ListRooms))
+        const rooms = roomData.data.listRooms.items
+        const roomStarted = !rooms.map((r) => r.name).includes(room)
+        if (roomStarted) {
+          setMode(WRITE_PROMPT)
+        }
+      }
+    })
     return () =>  {
-      subscription.unsubscribe()
+      messageSubscription.unsubscribe()
+      roomSubscription.unsubscribe()
     }
-  }, [room, state])
+  }, [])
 
   async function createMessage(url, round) {
     const message = {url: url, round: round, username: state.username, room: room}
@@ -155,25 +175,31 @@ const Game = () => {
 
   return (
     <div style={appStyle}>
-      <Info
-        mode={state.mode}
-      />
-      <Dream 
-        createMessage={createMessage}
-        mode={state.mode}
-        setMode={setMode}
-      />
-      <Form 
-        mode={state.mode}
-        prompt={prompt}
-        setPrompt={setPrompt}
-        handleSubmit={handleSubmit} 
-      />
+      <div style={{width: '15vw'}}>
+        <Sidebar room={room} />
+      </div>
+      <div style={{width: '85vw'}}>
+        <Info
+          mode={state.mode}
+        />
+        <Dream 
+          createMessage={createMessage}
+          mode={state.mode}
+          setMode={setMode}
+        />
+        <Form 
+          mode={state.mode}
+          prompt={prompt}
+          setPrompt={setPrompt}
+          handleSubmit={handleSubmit} 
+        />
+      </div>
     </div>
   )
 }
 const appStyle = {textAlign: 'center', 
                   backgroundColor: 'white',
-                  margin: '10px'}
+                  margin: '10px',
+                  display: 'flex'}
 
 export default Game

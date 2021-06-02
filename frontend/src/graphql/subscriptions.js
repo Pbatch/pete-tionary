@@ -20,3 +20,12 @@ subscription {
   }
 }
 `
+
+export const OnDeleteRoom = gql`
+subscription {
+  onDeleteRoom {
+    id 
+    name
+  }
+}
+`
