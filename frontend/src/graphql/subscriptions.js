@@ -4,7 +4,7 @@ export const OnCreateMessage = gql`
   subscription {
     onCreateMessage {
       id 
-      room
+      roomName
       round
       url
       username
@@ -16,7 +16,7 @@ export const OnCreateRoom = gql`
 subscription {
   onCreateRoom {
     id 
-    name
+    roomName
   }
 }
 `
@@ -25,7 +25,7 @@ export const OnDeleteRoom = gql`
 subscription {
   onDeleteRoom {
     id 
-    name
+    roomName
   }
 }
 `

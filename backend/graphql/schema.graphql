@@ -6,7 +6,7 @@ schema {
 
 type Message {
   id: ID!
-  room: String!
+  roomName: String!
   round: Int!
   url: String!
   username: String!
@@ -35,7 +35,7 @@ type Query {
 
 type Room {
   id: ID!
-  name: String!
+  roomName: String!
 }
 
 type RoomConnection {
@@ -44,29 +44,29 @@ type RoomConnection {
 }
 
 type Subscription {
-  onCreateMessage(id: ID, room: String, round: Int, url: String, username: String): Message
+  onCreateMessage(id: ID, roomName: String, round: Int, url: String, username: String): Message
     @aws_subscribe(mutations : ["createMessage"])
-  onCreateRoom(id: ID, name: String): Room
+  onCreateRoom(id: ID, roomName: String): Room
     @aws_subscribe(mutations : ["createRoom"])
-  onDeleteMessage(id: ID, room: String, round: Int, url: String, username: String): Message
+  onDeleteMessage(id: ID, roomName: String, round: Int, url: String, username: String): Message
     @aws_subscribe(mutations : ["deleteMessage"])
-  onDeleteRoom(id: ID, name: String): Room
+  onDeleteRoom(id: ID, roomName: String): Room
     @aws_subscribe(mutations : ["deleteRoom"])
-  onUpdateMessage(id: ID, room: String, round: Int, url: String, username: String): Message
+  onUpdateMessage(id: ID, roomName: String, round: Int, url: String, username: String): Message
     @aws_subscribe(mutations : ["updateMessage"])
-  onUpdateRoom(id: ID, name: String): Room
+  onUpdateRoom(id: ID, roomName: String): Room
     @aws_subscribe(mutations : ["updateRoom"])
 }
 
 input CreateMessageInput {
-  room: String!
+  roomName: String!
   round: Int!
   url: String!
   username: String!
 }
 
 input CreateRoomInput {
-  name: String!
+  roomName: String!
 }
 
 input TableFloatFilterInput {
@@ -108,7 +108,7 @@ input TableIntFilterInput {
 
 input TableMessageFilterInput {
   id: TableIDFilterInput
-  room: TableStringFilterInput
+  roomName: TableStringFilterInput
   round: TableIntFilterInput
   url: TableStringFilterInput
   username: TableStringFilterInput
@@ -116,7 +116,7 @@ input TableMessageFilterInput {
 
 input TableRoomFilterInput {
   id: TableIDFilterInput
-  name: TableStringFilterInput
+  roomName: TableStringFilterInput
 }
 
 input TableStringFilterInput {
@@ -134,7 +134,7 @@ input TableStringFilterInput {
 
 input UpdateMessageInput {
   id: ID!
-  room: String
+  roomName: String
   round: Int
   url: String
   username: String
@@ -142,5 +142,5 @@ input UpdateMessageInput {
 
 input UpdateRoomInput {
   id: ID!
-  name: String
+  roomName: String
 }

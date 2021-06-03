@@ -149,6 +149,15 @@ class PictionaryStack(core.Stack):
                                                        request_mapping_template=request_mapping_template,
                                                        response_mapping_template=response_mapping_template)
 
+    def setup_delete_message_resolver(self):
+        request_mapping_template = appsync.MappingTemplate.dynamo_db_delete_item('id', 'id')
+        response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
+        self.message_table_data_source.create_resolver(type_name='Mutation',
+                                                       field_name='deleteMessage',
+                                                       request_mapping_template=request_mapping_template,
+                                                       response_mapping_template=response_mapping_template
+                                                       )
+
     def setup_create_room_resolver(self):
         key = appsync.PrimaryKey.partition('id').auto()
         values = appsync.Values.projecting('input')
@@ -352,6 +361,7 @@ class PictionaryStack(core.Stack):
         self.room_table_data_source = self.setup_room_table_data_source()
         self.setup_create_message_resolver()
         self.setup_list_messages_resolver()
+        self.setup_delete_message_resolver()
         self.setup_create_room_resolver()
         self.setup_list_rooms_resolver()
         self.setup_delete_room_resolver()

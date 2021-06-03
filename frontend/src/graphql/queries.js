@@ -5,7 +5,7 @@ export const ListMessages = gql`
     listMessages {
       items {
         id 
-        room
+        roomName
         round
         url
         username
@@ -19,7 +19,7 @@ export const ListRooms = gql`
     listRooms {
       items {
         id 
-        name
+        roomName
       }
     }
   }

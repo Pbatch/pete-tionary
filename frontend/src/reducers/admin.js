@@ -1,6 +1,6 @@
-import { SET_ADMIN} from '../constants/action-types' 
+import { SET_ADMIN } from '../constants/action-types' 
 
-const initialState = false
+const initialState = ''
 
 const Admin = (state = initialState, action) => {
   switch(action.type) {

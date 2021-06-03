@@ -3,7 +3,8 @@ import {
   SET_IMAGES,
   SET_ROUND,
   SET_MODE,
-  SET_ADMIN
+  SET_ADMIN,
+  SET_ROOM_NAME
 } from '../constants/action-types'
 
 export const setUsername = (username) => ({
@@ -29,4 +30,9 @@ export const setMode = (mode) => ({
 export const setAdmin = (admin) => ({
   type: SET_ADMIN,
   admin
+})
+
+export const setRoomName = (roomName) => ({
+  type: SET_ROOM_NAME,
+  roomName
 })

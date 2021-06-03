@@ -1,6 +1,9 @@
 import { WRITE_PROMPT } from '../constants/modes'
+import { useSelector, shallowEqual } from 'react-redux'
 
-const Form = ({mode, prompt, setPrompt, handleSubmit}) => {  
+const Form = ({prompt, setPrompt, handleSubmit}) => {  
+  const mode = useSelector(state => state.mode, shallowEqual)
+
   function handleChange(e) {
     const newPrompt = e.target.value.replace(/ /g, '_')
     setPrompt(newPrompt)

@@ -6,8 +6,10 @@ import {
   END_OF_GAME,
   WAIT_FOR_START
 } from '../constants/modes'
+import { useSelector, shallowEqual } from 'react-redux'
 
-const Info = ({mode}) => {
+const Info = () => {
+  const mode = useSelector(state => state.mode, shallowEqual)
   const info = () => {
     switch(mode) {
       case WRITE_PROMPT:

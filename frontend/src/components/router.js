@@ -9,7 +9,7 @@ const Router = () => {
         <Route exact path='/'>
           <Rooms />
         </Route>
-        <Route path='/:roomname'>
+        <Route path='/:roomName'>
           <Game />
         </Route>
       </Switch>

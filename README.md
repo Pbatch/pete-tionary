@@ -27,9 +27,10 @@ cdk deploy --outputs-file "../frontend/src/constants/cdk.json"
 * Message table, player and room table
     * Message - id, room, round, url, username
     * Room - id, name
-* First person to create room becomes the admin. 
-They start the game by deleting the room entry. 
-This changes the mode of all the players to WRITE_PROMPT.
+* Start game pipeline 
+    * First person to create room becomes the admin. 
+    * They start the game by deleting the room entry. 
+    * This changes the mode of all the players to WRITE_PROMPT.
 
 ## Subscriptions
 
