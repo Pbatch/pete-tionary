@@ -7,10 +7,15 @@ RUN apt-get update && \
     pip3 install --upgrade pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install deep-daze boto3
+    pip install ftfy einops boto3 regex
 
-COPY main.py download.py ./
-    
+# Copy the files required for downloading the CLIP weights
+COPY clip.py utils.py download.py ./
+
+# Download the CLIP weights
 RUN python3 download.py
 
-CMD python3 main.py --prompt $prompt --bucket $bucket
+# Copy everything else
+COPY deep_daze.py imagine.py main.py siren.py tokenizer.py bpe_simple_vocab_16e6.txt ./
+
+CMD python3 main.py --bucket $bucket --queueUrl $queueUrl --region $region

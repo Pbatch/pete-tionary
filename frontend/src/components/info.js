@@ -35,6 +35,6 @@ const Info = () => {
 const infoStyle = {
   fontFamily: 'Courier New, monospace',
   textAlign: 'center',
-  fontSize: '25px'
+  fontSize: '1.5em'
 }
 export default Info

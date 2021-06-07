@@ -15,8 +15,7 @@ export const AMPLIFY_CONFIG = {
 
 export const LAMBDA_CONFIG = {
   region: CDK_CONFIG["region"],
-  jobDefinition: CDK_CONFIG["jobDefinition"],
-  jobQueue: CDK_CONFIG["jobQueue"],
+  queueUrl: CDK_CONFIG["queueUrl"],
   bucket: CDK_CONFIG["pictureBucket"],
   lambdaUrl: CDK_CONFIG["lambdaUrl"],
   bucketUrl: `https://s3-${CDK_CONFIG["region"]}.amazonaws.com/${CDK_CONFIG["pictureBucket"]}`

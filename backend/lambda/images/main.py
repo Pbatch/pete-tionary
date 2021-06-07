@@ -10,24 +10,9 @@ def generate_images(body):
     if check_images_ready(body) == 'ready':
         return f'job for prompt "{body["prompt"]}" already completed'
 
-    container_overrides = {
-        'environment': [
-            {
-                'name': 'prompt',
-                'value': body['prompt']
-            },
-            {
-                'name': 'bucket',
-                'value': body['bucket']
-            }
-        ]
-    }
-    job_name = body['prompt']
-    batch_client.submit_job(jobName=job_name,
-                            jobQueue=body['jobQueue'],
-                            jobDefinition=body['jobDefinition'],
-                            containerOverrides=container_overrides
-                            )
+    queue = boto3.resource('sqs').Queue(body['queueUrl'])
+    queue.send_message(MessageBody=body['prompt'])
+
     return f'submitted job for prompt "{body["prompt"]}"'
 
 

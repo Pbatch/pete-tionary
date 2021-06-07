@@ -1,15 +1,17 @@
 {
   "pictionary": {
-    "pictureBucket": "pictionary-mypicturebucket4cd3a363-1nvwpx6nvn845",
-    "mylambdaapiEndpointA8C81370": "https://a7rluggoag.execute-api.eu-west-1.amazonaws.com/prod/",
-    "graphqlUrl": "https://g6b3jizbergmbjkrnho6bklg5q.appsync-api.eu-west-1.amazonaws.com/graphql",
-    "jobQueue": "arn:aws:batch:eu-west-1:068121675185:job-queue/myjobqueue10DE9356-58cae5432d44b7c",
+    "container": "my_container",
+    "pictureBucket": "pictionary-mypicturebucket4cd3a363-4fc1j9zko2qd",
+    "mylambdaapiEndpointA8C81370": "https://rnjflhkj8f.execute-api.eu-west-1.amazonaws.com/prod/",
+    "lambdaUrl": "https://rnjflhkj8f.execute-api.eu-west-1.amazonaws.com/prod/",
+    "queueUrl": "https://sqs.eu-west-1.amazonaws.com/068121675185/pictionary-myqueueCA40C0D7-QO4ALZ31TBLN",
+    "graphqlUrl": "https://gi4xkftx5zfs7feycrfzrg3iji.appsync-api.eu-west-1.amazonaws.com/graphql",
+    "clusterArn": "arn:aws:ecs:eu-west-1:068121675185:cluster/pictionary-myclusterFE55B7AA-EYiolioCfLeu",
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-1:068121675185:task-definition/pictionarymytask99A1755B:3",
     "websiteUrl": "https://pictionary.pbatch.net",
-    "userPoolClientId": "4p5una7uhnu5b4582bthnotjss",
-    "lambdaUrl": "https://a7rluggoag.execute-api.eu-west-1.amazonaws.com/prod/",
+    "userPoolClientId": "2qkt4305hv7jqb86thdcfhv3gu",
     "region": "eu-west-1",
     "deploymentBucket": "pictionary.pbatch.net",
-    "userPoolId": "eu-west-1_Q1exuaJqV",
-    "jobDefinition": "arn:aws:batch:eu-west-1:068121675185:job-definition/pictionary:43"
+    "userPoolId": "eu-west-1_Kv6t2IHle"
   }
 }

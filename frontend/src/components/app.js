@@ -3,10 +3,11 @@ import Authenticator from './authenticator'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components'
 import { setUsername } from '../actions/index'
-import Router from './router'
+import Lobby from './lobby'
+import Game from './game'
 
 const App = () => {
-  const username = useSelector(state => state.username, shallowEqual)
+  const state = useSelector(state => state, shallowEqual)
   const dispatch = useDispatch()
   const [authState, setAuthState] = useState()
 
@@ -19,7 +20,15 @@ const App = () => {
       })
   }, [dispatch, setAuthState])
 
-  return (authState === AuthState.SignedIn && username ? <Router /> : <Authenticator />)
+  if (authState !== AuthState.SignedIn && !state.username) {
+    return <Authenticator />
+  }
+  else if (state.roomName !== '') {
+    return <Game />
+  }
+  else {
+    return <Lobby />
+  }
 }
 
 export default App

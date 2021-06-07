@@ -6,7 +6,6 @@ import { ListMessages, ListRooms } from '../graphql/queries'
 import { API, graphqlOperation } from 'aws-amplify'
 import { setImages, setRound, setMode, setAdmin } from '../actions/index'
 import { 
-  WAIT_FOR_START, 
   WAIT_FOR_IMAGES, 
   SELECT_IMAGE, 
   WRITE_PROMPT, 
@@ -30,15 +29,6 @@ const Game = () => {
   const mod = (a, b) => {
     return ((a % b) + b) % b
   }  
-
-  // On the initial load we need to:
-  // Set the mode to WAIT_FOR_START
-  // Clear all the state variables
-  useEffect(() => {
-    dispatch(setMode(WAIT_FOR_START))
-    dispatch(setImages([]))
-    dispatch(setRound(0))
-  }, [dispatch])
 
   useEffect(() => {
     let roomSubscription = API.graphql(graphqlOperation(OnDeleteRoom))
@@ -110,8 +100,7 @@ const Game = () => {
   
   function generateImages() {
     const payload = {'function': 'generate_images',
-                     'jobDefinition': LAMBDA_CONFIG['jobDefinition'],
-                     'jobQueue': LAMBDA_CONFIG['jobQueue'],
+                     'queueUrl': LAMBDA_CONFIG['queueUrl'],
                      'bucket': LAMBDA_CONFIG['bucket'],
                      'prompt': prompt}
     fetch(LAMBDA_CONFIG['lambdaUrl'], {
@@ -150,7 +139,8 @@ const Game = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    const regex = /[a-zA-Z][a-zA-Z ]+/
+    // All prompts must be 1 to 50 lowercase alphabet characters
+    const regex = /[a-z]{1,50}/
     if (!regex.test(state.prompt)) return
     dispatch(setMode(WAIT_FOR_IMAGES))
     generateImages()
@@ -177,7 +167,7 @@ const Game = () => {
 
 const appStyle = {textAlign: 'center', 
                   backgroundColor: 'white',
-                  margin: '10px',
+                  margin: '1em',
                   display: 'flex'}
 
 export default Game

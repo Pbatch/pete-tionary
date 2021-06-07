@@ -1,31 +1,22 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import { API, graphqlOperation } from 'aws-amplify'
-import { CreateRoom, CreateMessage, DeleteMessage } from '../graphql/mutations'
+import { CreateRoom, CreateMessage } from '../graphql/mutations'
 import { OnCreateRoom, OnDeleteRoom } from '../graphql/subscriptions'
-import { ListRooms, ListMessages } from '../graphql/queries'
+import { ListRooms } from '../graphql/queries'
 import { sampleSize } from 'lodash'
 import { v4 } from 'node-uuid'
-import { useHistory } from 'react-router-dom'
 import { setMode, setAdmin, setImages, setRound, setRoomName } from '../actions'
-import { SELECT_ROOM } from '../constants/modes'
+import { SELECT_ROOM, WAIT_FOR_START } from '../constants/modes'
 
-const Rooms = () => {
+const Lobby = () => {
   const state = useSelector(state => state, shallowEqual)
-  const history = useHistory()
   const dispatch = useDispatch()
   const [rooms, setRooms] = useState([])
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
-  useEffect(() => {
-    // On the initial render
-    // Set mode to SELECT_ROOM, images to [] and round to 0
-    // Fetch and set the rooms
-    dispatch(setMode(SELECT_ROOM))
-    dispatch(setImages([]))
-    dispatch(setRound(0))
-  
+  useEffect(() => {  
     fetchAndSetRooms()
     let createSubscription = API.graphql(graphqlOperation(OnCreateRoom))
     .subscribe({
@@ -41,18 +32,19 @@ const Rooms = () => {
     }
   }, [dispatch])
 
-  async function fetchAndSetRooms() {
+  const fetchAndSetRooms = async () => {
     const roomData = await API.graphql(graphqlOperation(ListRooms))
     const rooms = roomData.data.listRooms.items
     setRooms(rooms)
   }
 
-  async function createRoom() {
+  const createRoom = async () => {
     // Warning! This causes disaster if the roomName is not unique
     const roomName = sampleSize(alphabet, 4).join('')
     const payload = {'roomName': roomName}
     API.graphql(graphqlOperation(CreateRoom, payload))
-    enterRoom(roomName, roomName)
+    dispatch(setAdmin(roomName))
+    enterRoom(roomName)
   }
 
   const handleCreateRoomSubmit = (e) => {
@@ -62,35 +54,29 @@ const Rooms = () => {
 
   const handleEnterRoomSubmit = (e, roomName) => {
     e.preventDefault()
-    enterRoom(roomName, '')
+    enterRoom(roomName)
   }
 
-  const enterRoom = async (roomName, admin) => {    
-    if (roomName !== state.roomName) {
+  const enterRoom = async (roomName) => {       
+    // Send an empty message to claim your space in the room
+    const message = {url: '', round: 0, username: state.username, roomName: roomName}
+    API.graphql(graphqlOperation(CreateMessage, message))
 
-      // Delete all your messages for other rooms
-      const messageData = await API.graphql(graphqlOperation(ListMessages))
-      const messages = messageData.data.listMessages.items
-      .filter(m => m.username === state.username)
-      messages.forEach(m => {
-        const payload = {'id': m.id}
-        API.graphql(graphqlOperation(DeleteMessage, payload))
-      })
-      
-      // Send an empty message to claim your space in the room
-      const message = {url: '', round: 0, username: state.username, roomName: roomName}
-      API.graphql(graphqlOperation(CreateMessage, message))
-
-      dispatch(setRoomName(roomName))
-      dispatch(setAdmin(admin))
-    }
-    history.push(`/${roomName}`)
+    // Set the initial state
+    dispatch(setMode(WAIT_FOR_START))
+    dispatch(setImages([]))
+    dispatch(setRound(0))
+    dispatch(setRoomName(roomName))
   }
 
   const roomButtons = rooms.map(({roomName}) => {
     return (
       <div key={v4()}>
-        <button onClick={(e) => handleEnterRoomSubmit(e, roomName)}>
+        <button 
+          onClick={(e) => handleEnterRoomSubmit(e, roomName)} 
+          style={buttonStyle}
+          disabled={state.mode !== SELECT_ROOM}
+        >
             {roomName}
         </button>
       </div>
@@ -102,24 +88,38 @@ const Rooms = () => {
       <button 
         onClick={handleCreateRoomSubmit}
         disabled={state.admin !== ''}
+        style={buttonStyle}
       >
-        Create Room
+        Create
       </button>
     </div>
   )
 
+  const title = (
+    <div style={titleStyle}>
+      Rooms
+    </div>
+  )
+
   return (
-    <div style={roomStyle}>
-      <b>Rooms</b>
+    <div style={lobbyStyle}>
+      {title}
       {roomButtons}
       {createRoomButton}
     </div>
   )
 }
 
-const roomStyle = {textAlign: 'center', 
-                   backgroundColor: 'white',
-                   margin: '10px',
-                   fontSize: '25px'}
+const titleStyle = {fontWeight: 'bold',
+                    fontSize: '1em'}
 
-export default Rooms
+const buttonStyle = {
+  fontSize: '1em',
+  margin: '1em'
+}
+
+const lobbyStyle = {textAlign: 'center', 
+                   backgroundColor: 'white',
+                   fontSize: '2em'}
+
+export default Lobby

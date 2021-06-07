@@ -1,39 +1,62 @@
-import boto3
-from deep_daze import Imagine
+from imagine import Imagine
+from deep_daze import DeepDaze
+from utils import download_vit, load_perceptor
+import os
 import argparse
+import boto3
+import torch
+import random
+import time
+
+s3_client = boto3.client('s3')
 
 
-def run_deep_daze(prompt, seed):
-    model = Imagine(text=prompt.replace('_', ' '),
-                    image_width=128,
-                    num_layers=20,
-                    batch_size=64,
-                    gradient_accumulate_every=1,
-                    epochs=1,
-                    seed=seed,
-                    lr=4e-5,
-                    save_progress=False,
-                    iterations=100,
-                    hidden_size=512)
-    model()
-
-
-def create_image(prompt, bucket):
-    save_path = f'./{prompt}.jpg'
-    s3_client = boto3.client('s3')
-
+def create_images(prompt, perceptor, clip_norm, bucket):
     for seed in range(3):
-        s3_path = f'prompt={prompt}-seed={seed}.jpg'
-        run_deep_daze(prompt, seed)
-        s3_client.upload_file(save_path, bucket, s3_path)
+        # Set the random state
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        random.seed(seed)
+        torch.backends.cudnn.deterministic = True
+
+        # Load the Siren
+        model = DeepDaze(perceptor, clip_norm)
+
+        # Generate the image
+        save_path = f'prompt={prompt.replace(" ", "_")}-seed={seed}.jpg'
+        cls = Imagine(prompt=prompt,
+                      model=model,
+                      save_path=save_path)
+        cls.forward()
+        s3_client.upload_file(cls.save_path, bucket, cls.save_path)
+
+
+def poll_queue(queue_url, bucket, region):
+    # Load the CLIP perceptor
+    path = os.path.expanduser('~/.cache/clip/ViT-B-32.pt')
+    perceptor, clip_norm = load_perceptor(path)
+
+    # Continuously poll the queue
+    queue = boto3.resource('sqs', region_name=region).Queue(queue_url)
+    while True:
+        # Process one user at a time
+        response = queue.receive_messages(MaxNumberOfMessages=1)
+        if response:
+            message = response[0]
+            prompt = message.body
+            create_images(prompt, perceptor, clip_norm, bucket)
+            message.delete()
+        else:
+            time.sleep(1)
 
 
 def main():
     parser = argparse.ArgumentParser(description='Run Deep Daze')
-    parser.add_argument('-p', '--prompt', help='The text prompt', required=True)
+    parser.add_argument('-q', '--queueUrl', help='The URL of the queue', required=True)
     parser.add_argument('-b', '--bucket', help='The picture bucket', required=True)
+    parser.add_argument('-r', '--region', help='The region of the SQS queue', required=True)
     args = parser.parse_args()
-    create_image(args.prompt, args.bucket)
+    poll_queue(args.queueUrl, args.bucket, args.region)
 
 
 if __name__ == '__main__':

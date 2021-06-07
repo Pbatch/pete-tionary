@@ -9,8 +9,8 @@ aws-cdk.aws_route53_targets==1.69.0
 aws-cdk.aws_dynamodb==1.69.0
 aws-cdk.aws_lambda==1.69.0
 aws-cdk.aws_appsync==1.69.0
-aws_cdk.aws_batch==1.69.0
 aws_cdk.aws_ecr==1.69.0
 aws_cdk.aws_ecs==1.69.0
 aws_cdk.aws_ec2==1.69.0
 aws_cdk.aws_cognito==1.69.0
+aws_cdk.aws_sqs==1.69.0

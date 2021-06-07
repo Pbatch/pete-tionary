@@ -8,11 +8,11 @@ from aws_cdk import (
     aws_route53_targets as targets,
     aws_lambda as lambda_,
     aws_apigateway as apigateway,
-    aws_batch as batch,
     aws_ecr as ecr,
     aws_ecs as ecs,
     aws_iam as iam,
     aws_ec2 as ec2,
+    aws_sqs as sqs,
     aws_cognito as cognito,
     aws_dynamodb as ddb,
     aws_appsync as appsync
@@ -34,18 +34,20 @@ class PictionaryStack(core.Stack):
     PUBLIC_SUBNET_IDS = ['subnet-f0ac3faa',
                          'subnet-27e1b741',
                          'subnet-4df5d405']
-    # A p2.xlarge instance has 4 vcpus, 61 GiB memory and costs $0.90 ph
-    # A p3.2xlarge instance has 8 vcpus, 61 GiB memory and costs $3.06 ph
     INSTANCE_TYPE = 'g4dn.xlarge'
     VCPUS = 4
     MEMORY_LIMIT_MIB = 15500
     GPU_COUNT = 1
 
+    def setup_queue(self):
+        queue = sqs.Queue(self, 'my_queue')
+        return queue
+
     def setup_auth_lambda(self):
         auth_lambda = lambda_.Function(self, 'my_auth_lambda',
-                                       handler='auth.handler',
+                                       handler='main.handler',
                                        runtime=lambda_.Runtime.PYTHON_3_7,
-                                       code=lambda_.Code.from_asset('lambda')
+                                       code=lambda_.Code.from_asset('lambda/auth')
                                        )
         return auth_lambda
 
@@ -59,7 +61,7 @@ class PictionaryStack(core.Stack):
         user_pool = cognito.UserPool(self, 'my_user_pool',
                                      self_sign_up_enabled=True,
                                      password_policy=password_policy,
-                                     lambda_triggers=user_pool_triggers
+                                     lambda_triggers=user_pool_triggers,
                                      )
         return user_pool
 
@@ -68,32 +70,12 @@ class PictionaryStack(core.Stack):
                                                   user_pool=self.user_pool)
         return user_pool_client
 
-    # def setup_player_table(self):
-    #     partition_key = ddb.Attribute(name='id', type=ddb.AttributeType.STRING)
-    #     player_table = ddb.Table(self, 'my_player_table',
-    #                              partition_key=partition_key,
-    #                              billing_mode=ddb.BillingMode.PAY_PER_REQUEST,
-    #                              removal_policy=core.RemovalPolicy.DESTROY)
-    #     return player_table
-
     def setup_message_table(self):
         partition_key = ddb.Attribute(name='id', type=ddb.AttributeType.STRING)
         message_table = ddb.Table(self, 'my_message_table',
                                   partition_key=partition_key,
                                   billing_mode=ddb.BillingMode.PAY_PER_REQUEST,
                                   removal_policy=core.RemovalPolicy.DESTROY)
-        # role = iam.Role(self, 'my_message_table_role',
-        #                 assumed_by=iam.ServicePrincipal('dynamodb.amazonaws.com'))
-        # policy = iam.PolicyStatement(effect=iam.Effect.ALLOW,
-        #                              resources=[f'{message_table.table_arn}/index/messages-by-room-id'],
-        #                              actions=['dynamodb:Query'])
-        # role.add_to_policy(policy)
-        # partition_key = ddb.Attribute(name='id', type=ddb.AttributeType.STRING)
-        # sort_key = ddb.Attribute(name='name', type=ddb.AttributeType.STRING)
-        # message_table.add_global_secondary_index(index_name='messages-by-room-id',
-        #                                          partition_key=partition_key,
-        #                                          sort_key=sort_key)
-
         return message_table
 
     def setup_room_table(self):
@@ -125,11 +107,6 @@ class PictionaryStack(core.Stack):
         room_table_data_source = self.graphql_api.add_dynamo_db_data_source(id='my_room_table_data_source',
                                                                             table=self.room_table)
         return room_table_data_source
-
-    # def setup_player_table_data_source(self):
-    #     player_table_data_source = self.graphql_api.add_dynamo_db_data_source(id='my_player_table_data_source',
-    #                                                                           table=self.player_table)
-    #     return player_table_data_source
 
     def setup_create_message_resolver(self):
         key = appsync.PrimaryKey.partition('id').auto()
@@ -185,24 +162,6 @@ class PictionaryStack(core.Stack):
                                                     field_name='listRooms',
                                                     request_mapping_template=request_mapping_template,
                                                     response_mapping_template=response_mapping_template)
-
-    # def setup_create_player_resolver(self):
-    #     key = appsync.PrimaryKey.partition('id').auto()
-    #     values = appsync.Values.projecting('input')
-    #     request_mapping_template = appsync.MappingTemplate.dynamo_db_put_item(key=key, values=values)
-    #     response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
-    #     self.room_table_data_source.create_resolver(type_name='Mutation',
-    #                                                 field_name='createPlayer',
-    #                                                 request_mapping_template=request_mapping_template,
-    #                                                 response_mapping_template=response_mapping_template)
-
-    # def setup_list_player_resolver(self):
-    #     request_mapping_template = appsync.MappingTemplate.dynamo_db_scan_table()
-    #     response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
-    #     self.room_table_data_source.create_resolver(type_name='Query',
-    #                                                 field_name='listPlayers',
-    #                                                 request_mapping_template=request_mapping_template,
-    #                                                 response_mapping_template=response_mapping_template)
 
     def setup_website_bucket(self):
         website_bucket = s3.Bucket(self, 'my_website_bucket',
@@ -261,9 +220,6 @@ class PictionaryStack(core.Stack):
                                                     sources=[s3_deployment.Source.asset(asset_path)],
                                                     distribution=self.distribution,
                                                     distribution_paths=['/*'])
-        # deployment = s3_deployment.BucketDeployment(self, 'my_deployment',
-        #                                             destination_bucket=self.website_bucket,
-        #                                             sources=[s3_deployment.Source.asset(asset_path)])
         return deployment
 
     def setup_picture_bucket(self):
@@ -279,21 +235,6 @@ class PictionaryStack(core.Stack):
                                                          repository_name=repository_name)
         return repository
 
-    def setup_container(self):
-        role = iam.Role(self, 'my_container_role',
-                        assumed_by=iam.ServicePrincipal('ecs-tasks.amazonaws.com'))
-        s3_policy = iam.PolicyStatement(actions=['s3:PutObject'],
-                                        resources=[self.picture_bucket.bucket_arn,
-                                                   f'{self.picture_bucket.bucket_arn}/*'])
-        role.add_to_policy(s3_policy)
-        image = ecs.ContainerImage.from_ecr_repository(self.repository, tag='latest')
-        container = batch.JobDefinitionContainer(image=image,
-                                                 job_role=role,
-                                                 vcpus=self.VCPUS,
-                                                 memory_limit_mib=self.MEMORY_LIMIT_MIB,
-                                                 gpu_count=self.GPU_COUNT)
-        return container
-
     def setup_vpc(self):
         vpc = ec2.Vpc.from_vpc_attributes(self, 'my_vpc',
                                           vpc_id=self.VPC_ID,
@@ -301,46 +242,66 @@ class PictionaryStack(core.Stack):
                                           public_subnet_ids=self.PUBLIC_SUBNET_IDS)
         return vpc
 
-    def setup_compute_environment(self):
-        image = ec2.MachineImage.generic_linux({self.REGION: self.EC2_AMI})
+    def setup_cluster(self):
+        cluster = ecs.Cluster(self, 'my_cluster',
+                              vpc=self.vpc)
+        return cluster
+
+    def setup_autoscaling_group(self):
+        machine_image = ec2.MachineImage.generic_linux({self.REGION: self.EC2_AMI})
         instance_type = ec2.InstanceType(self.INSTANCE_TYPE)
-        # Restrict the compute environment to 1 instance
-        compute_resources = batch.ComputeResources(vpc=self.vpc,
-                                                   image=image,
-                                                   instance_types=[instance_type],
-                                                   maxv_cpus=self.VCPUS)
-        compute_environment = batch.ComputeEnvironment(self, 'my_environment',
-                                                       compute_resources=compute_resources)
-        return compute_environment
+        auto_scaling_group = self.cluster.add_capacity('my_capacity',
+                                                       instance_type=instance_type,
+                                                       machine_image=machine_image,
+                                                       min_capacity=1,
+                                                       max_capacity=1,
+                                                       allow_all_outbound=True)
+        return auto_scaling_group
 
-    def setup_job_queue(self):
-        job_queue_compute_environment = batch.JobQueueComputeEnvironment(
-            compute_environment=self.compute_environment,
-            order=1
-        )
-        job_queue = batch.JobQueue(self, 'my_job_queue',
-                                   compute_environments=[job_queue_compute_environment])
-        return job_queue
+    def setup_task(self):
+        task = ecs.TaskDefinition(self, 'my_task',
+                                  compatibility=ecs.Compatibility('EC2'))
 
-    def setup_job_definition(self):
-        job_definition = batch.JobDefinition(self, 'my_job_definition',
-                                             job_definition_name='pictionary',
-                                             container=self.container)
-        return job_definition
+        s3_policy = iam.PolicyStatement(actions=['s3:PutObject'],
+                                        resources=[self.picture_bucket.bucket_arn,
+                                                   f'{self.picture_bucket.bucket_arn}/*'])
+        task.add_to_task_role_policy(s3_policy)
+
+        sqs_policy = iam.PolicyStatement(actions=['sqs:ReceiveMessage', 'sqs:DeleteMessage'],
+                                         resources=[self.queue.queue_arn])
+        task.add_to_task_role_policy(sqs_policy)
+
+        return task
+
+    def setup_container(self):
+        image = ecs.ContainerImage.from_ecr_repository(self.repository, tag='latest')
+        logging = ecs.AwsLogDriver(stream_prefix='pictionary')
+        container = ecs.ContainerDefinition(self, 'my_container',
+                                            task_definition=self.task,
+                                            image=image,
+                                            logging=logging,
+                                            memory_reservation_mib=self.MEMORY_LIMIT_MIB,
+                                            gpu_count=self.GPU_COUNT)
+        return container
 
     def setup_images_lambda(self):
         images_lambda = lambda_.Function(self, 'my_images_lambda',
-                                         handler='images.handler',
+                                         handler='main.handler',
                                          runtime=lambda_.Runtime.PYTHON_3_7,
-                                         code=lambda_.Code.from_asset('lambda')
+                                         code=lambda_.Code.from_asset('lambda/images')
                                          )
+
+        # Give the lambda permission to list objects in S3
         s3_policy = iam.PolicyStatement(actions=['s3:ListBucket'],
                                         resources=[self.picture_bucket.bucket_arn,
                                                    f'{self.picture_bucket.bucket_arn}/*'])
-        batch_policy = iam.PolicyStatement(actions=['batch:SubmitJob'],
-                                           resources=["arn:aws:batch:*:*:*"])
         images_lambda.add_to_role_policy(s3_policy)
-        images_lambda.add_to_role_policy(batch_policy)
+
+        # Give the lambda permission to send jobs to the SQS queue
+        sqs_policy = iam.PolicyStatement(actions=['sqs:SendMessage'],
+                                         resources=[self.queue.queue_arn])
+        images_lambda.add_to_role_policy(sqs_policy)
+
         return images_lambda
 
     def setup_lambda_api(self):
@@ -350,7 +311,7 @@ class PictionaryStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
-
+        self.queue = self.setup_queue()
         self.auth_lambda = self.setup_auth_lambda()
         self.user_pool = self.setup_user_pool()
         self.user_pool_client = self.setup_user_pool_client()
@@ -372,25 +333,27 @@ class PictionaryStack(core.Stack):
         self.deployment = self.setup_bucket_deployment()
         self.picture_bucket = self.setup_picture_bucket()
         self.repository = self.setup_repository()
-        self.container = self.setup_container()
         self.vpc = self.setup_vpc()
-        self.compute_environment = self.setup_compute_environment()
-        self.job_queue = self.setup_job_queue()
-        self.job_definition = self.setup_job_definition()
+        self.cluster = self.setup_cluster()
+        self.setup_autoscaling_group = self.setup_autoscaling_group()
+        self.task = self.setup_task()
+        self.container = self.setup_container()
         self.images_lambda = self.setup_images_lambda()
         self.lambda_api = self.setup_lambda_api()
 
         # Make CfnOutputs for variables we're interested in
         d = {'deploymentBucket': self.website_bucket.bucket_name,
              'pictureBucket': self.picture_bucket.bucket_name,
-             'jobQueue': self.job_queue.job_queue_name,
-             'jobDefinition': self.job_definition.job_definition_name,
              'websiteUrl': f'https://{self.SITE_DOMAIN}',
              'lambdaUrl': self.lambda_api.url,
              'graphqlUrl': self.graphql_api.graphql_url,
              'userPoolId': self.user_pool.user_pool_id,
              'userPoolClientId': self.user_pool_client.user_pool_client_id,
              'region': self.region,
+             'container': self.container.container_name,
+             'taskDefinitionArn': self.task.task_definition_arn,
+             'clusterArn': self.cluster.cluster_arn,
+             'queueUrl': self.queue.queue_url,
              }
         for key, value in d.items():
             core.CfnOutput(self, key, value=value)

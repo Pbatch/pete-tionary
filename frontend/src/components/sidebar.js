@@ -1,13 +1,15 @@
 import { v4 } from 'node-uuid'
-import { useSelector, shallowEqual } from 'react-redux'
+import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import { API, graphqlOperation } from 'aws-amplify'
 import React, { useState, useEffect } from 'react'
 import { ListMessages, ListRooms } from '../graphql/queries'
 import { OnCreateMessage } from '../graphql/subscriptions'
-import { DeleteRoom } from '../graphql/mutations'
-import { WAIT_FOR_START } from '../constants/modes'
+import { DeleteRoom, DeleteMessage } from '../graphql/mutations'
+import { END_OF_GAME, WAIT_FOR_START, SELECT_ROOM } from '../constants/modes'
+import { setMode, setImages, setRound, setRoomName } from '../actions/index'
 
 const Sidebar = () => {
+  const dispatch = useDispatch()
   const state = useSelector(state => state, shallowEqual)
   const [usernames, setUsernames] = useState([])
 
@@ -34,7 +36,7 @@ const Sidebar = () => {
     }
   }, [state.roomName])
 
-  async function handleSubmit(e) {
+  async function handleStartSubmit(e) {
     e.preventDefault()
     const roomData = await API.graphql(graphqlOperation(ListRooms))
     const rooms = roomData.data.listRooms.items 
@@ -48,12 +50,38 @@ const Sidebar = () => {
     }
   }
 
+  async function handleLobbySubmit(e) {
+    e.preventDefault()
+
+    // Delete all of your messages
+    const messageData = await API.graphql(graphqlOperation(ListMessages))
+    const messages = messageData.data.listMessages.items
+    .filter(m => m.username === state.username)
+    messages.forEach(m => {
+      const payload = {'id': m.id}
+      API.graphql(graphqlOperation(DeleteMessage, payload))
+    })
+
+    dispatch(setMode(SELECT_ROOM))
+    dispatch(setImages([]))
+    dispatch(setRound(0))
+    dispatch(setRoomName(''))
+  }
+
   let usernameList = usernames.map((username) => {
     return (<div key={v4()}>{username}</div>)
   })
 
-  const buttonVisible = (state.admin === state.roomName) && (state.mode === WAIT_FOR_START)
-  const button = (buttonVisible ? <button style={buttonStyle} onClick={handleSubmit}>Start</button> : <div></div>)
+  const startButtonVisible = (state.admin === state.roomName) && (state.mode === WAIT_FOR_START)
+  const startButton = (startButtonVisible 
+    ? <button style={buttonStyle} onClick={handleStartSubmit}>Start</button> 
+    : <div></div>)
+
+  const lobbyButtonVisible = [END_OF_GAME, WAIT_FOR_START].includes(state.mode)
+  const lobbyButton = (lobbyButtonVisible
+    ? <button style={buttonStyle} onClick={handleLobbySubmit}>Lobby</button>
+    : <div></div>
+  )
 
   return (
     <div style={sidebarStyle}>
@@ -69,7 +97,9 @@ const Sidebar = () => {
       </div>
       {usernameList}
       <br/>
-      {button}
+      <div>{startButton}</div>
+      <br/>
+      <div>{lobbyButton}</div>
     </div>
   )
 }
@@ -77,11 +107,12 @@ const Sidebar = () => {
 const sidebarStyle = {
   fontFamily: 'Courier New, monospace',
   textAlign: 'center',
-  fontSize: '25px'
+  fontSize: '2em'
 }
 
 const buttonStyle = {
-  width: '50%'
+  width: '4em',
+  fontSize: '1em'
 }
 
 export default Sidebar

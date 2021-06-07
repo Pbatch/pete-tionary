@@ -4,9 +4,9 @@
 
 1.) Make a private ECR repository
 
-2.) `cd` into `docker`, then follow the commands in the ECR repository to upload the Docker image
+2.) Follow the commands in the ECR repository to upload the Docker image
 
-3.) Set the global variables in `aws/pictionary/pictionary_stack.py`
+3.) Set the global variables in `backend/pictionary/pictionary_stack.py`
 
 4.) Deploy the CloudFormation stack
 
@@ -14,13 +14,19 @@
 cdk deploy --outputs-file "../frontend/src/constants/cdk.json"
 ```
 
+5.) Start the server
+
+```
+python server.py
+```
+
 ## Future improvements
 
-* Create our own version of Deep Daze
-* Can shave off 12 seconds from Deep Daze by removing the clamp in `forward()`
+* Fix Amplify user error
+* Fix duplicate requests to create item in DynamoDB
+* Fix regex in game.js to not use look behind (doesn't work in Safari)
 * Can change the resolver for listMessages so that a filter can be added
 * Can make the S3 URL checks a graphQL subscription (instead of pinging from Lambda)
-* Create rooms
 
 ## Tables
 

@@ -35,8 +35,8 @@ const formStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  margin: '10px',
-  columnGap: '10px'
+  margin: '1em',
+  columnGap: '1em'
 }
 
 const inputStyle = {
