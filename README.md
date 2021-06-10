@@ -25,7 +25,11 @@ Once everyone has seen your original image,
 the game ends, 
 and you can see how your image developed over time.
 
+This is the final screen for user "chrome"
 ![robot_final](./pictures/a_robot_watching_the_sunset_final.jpg)
+
+This is the final screen for user "safari"
+![city_final](./pictures/a_city_burning_down_final.jpg)
 
 IMPORTANT! If the website breaks while you are playing,
  perform a hard reset by deleting the local storage.
