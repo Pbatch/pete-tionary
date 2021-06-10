@@ -19,13 +19,13 @@ This currently takes about 60 seconds per player (given that no-one else is on t
 
 3) All the images are passed on, and now each player must write a prompt that matches the image (step 1)
 
-[city_single](./pictures/a_city_burning_down_single.jpg)
+![city_single](./pictures/a_city_burning_down_single.jpg)
 
 Once everyone has seen your original image, 
 the game ends, 
 and you can see how your image developed over time.
 
-[robot_final](./pictures/a_robot_watching_the_sunset_final.jpg)
+![robot_final](./pictures/a_robot_watching_the_sunset_final.jpg)
 
 IMPORTANT! If the website breaks while you are playing,
  perform a hard reset by deleting the local storage.
