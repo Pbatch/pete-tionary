@@ -1,19 +1,21 @@
 # Deep Daze Pictionary
 
+Play at https://pictionary.pbatch.net/.
+
 Welcome to Deep Daze Pictionary, a combination of image synthesis and telephone pictionary.
 
-[city](./pictures/a_city_burning_down.jpg)
+![city](./pictures/a_city_burning_down.jpg)
 
 This is a fun game played in groups which proceeds as follows:
 
 1) Each player writes down a prompt I.e. "A robot watching the sunset", and has 3 images generated for them. 
 This currently takes about 60 seconds per player (given that no-one else is on the website).
 
-[robot](./pictures/a_robot_watching_the_sunset.jpg)
+![robot](./pictures/a_robot_watching_the_sunset.jpg)
 
 2) Each player selects the image that best matches their prompt.
 
-[robot_single](./pictures/a_robot_watching_the_sunset_single.jpg)
+![robot_single](./pictures/a_robot_watching_the_sunset_single.jpg)
 
 3) All the images are passed on, and now each player must write a prompt that matches the image (step 1)
 
@@ -49,6 +51,7 @@ and to [Ryan Murdock](https://twitter.com/advadnoun) for the discovery of the te
 * Cheaper/faster infrastructure (the current version of the website costs about 50p/h)
 * The ability to use a custom seed image
 * Test other image synthesis methods (VQ-GAN...)
+* Whatever you guys put in issues... :)
  
 ## Deploying your own version of the website
 
