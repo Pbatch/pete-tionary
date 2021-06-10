@@ -59,7 +59,7 @@ and to [Ryan Murdock](https://twitter.com/advadnoun) for the discovery of the te
  
 ## Deploying your own version of the website
 
-0.) Install AWS CDK and AWS ClI
+0.) Install AWS CDK and AWS CLI
 
 1.) Make a private ECR repository
 
