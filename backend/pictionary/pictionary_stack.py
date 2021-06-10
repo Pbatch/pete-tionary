@@ -40,7 +40,9 @@ class PictionaryStack(core.Stack):
     GPU_COUNT = 1
 
     def setup_queue(self):
-        queue = sqs.Queue(self, 'my_queue')
+        # Each job should take at most 2 minutes, so that is what the visibility timeout to be
+        queue = sqs.Queue(self, 'my_queue',
+                          visibility_timeout=core.Duration.minutes(2))
         return queue
 
     def setup_auth_lambda(self):

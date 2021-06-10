@@ -1,8 +1,9 @@
 import torch
 from torch import nn
 from torch.cuda.amp import GradScaler, autocast
+from torch.optim import AdamW
 from torchvision.transforms import ToPILImage
-from tqdm import trange
+from tqdm.autonotebook import tqdm
 from tokenizer import tokenize
 
 
@@ -10,20 +11,18 @@ class Imagine(nn.Module):
     def __init__(self,
                  prompt,
                  model,
-                 save_path,
-                 lr=4e-5,
-                 epochs=100
+                 epochs=100,
+                 lr=4e-5
                  ):
         super().__init__()
         self.prompt = prompt
         self.model = model
-        self.save_path = save_path
-        self.lr = lr
         self.epochs = epochs
+        self.lr = lr
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.scaler = GradScaler()
-        self.optimizer = torch.optim.Adam(self.model.model.parameters(), lr)
+        self.optimizer = AdamW(self.model.generator.parameters(), lr=self.lr)
 
         self.model.to(self.device)
         self.clip_encoding = self.create_encoding()
@@ -35,16 +34,20 @@ class Imagine(nn.Module):
         return encoding
 
     def forward(self):
-        for _ in trange(self.epochs, desc='epochs'):
-            with autocast(enabled=True):
-                out, loss = self.model(self.clip_encoding)
-            self.scaler.scale(loss).backward()
-            self.scaler.step(self.optimizer)
-            self.scaler.update()
-            self.optimizer.zero_grad(set_to_none=True)
+        with tqdm(total=self.epochs) as pbar:
+            for _ in range(self.epochs):
+                with autocast(enabled=True):
+                    _, loss = self.model(self.clip_encoding)
+                pbar.update(1)
+                pbar.set_description(f'Loss:{loss:.3f}')
+                self.scaler.scale(loss).backward()
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+                self.optimizer.zero_grad(set_to_none=True)
 
-        # Save the image
+    def save(self, save_path):
+        self.model.generator.eval()
         with torch.no_grad():
             img = self.model(self.clip_encoding, return_loss=False).cpu().float().clamp(0., 1.)
             img = ToPILImage()(img.squeeze())
-            img.save(self.save_path, quality=95, subsampling=0)
+            img.save(save_path, quality=95, subsampling=0)

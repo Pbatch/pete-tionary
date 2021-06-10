@@ -19,16 +19,15 @@ def create_images(prompt, perceptor, clip_norm, bucket):
         random.seed(seed)
         torch.backends.cudnn.deterministic = True
 
-        # Load the Siren
-        model = DeepDaze(perceptor, clip_norm)
-
         # Generate the image
+        model = DeepDaze(perceptor, clip_norm)
+        imagine = Imagine(prompt=prompt, model=model)
+        imagine()
+
+        # Save the image
         save_path = f'prompt={prompt.replace(" ", "_")}-seed={seed}.jpg'
-        cls = Imagine(prompt=prompt,
-                      model=model,
-                      save_path=save_path)
-        cls.forward()
-        s3_client.upload_file(cls.save_path, bucket, cls.save_path)
+        imagine.save(save_path)
+        s3_client.upload_file(save_path, bucket, save_path)
 
 
 def poll_queue(queue_url, bucket, region):

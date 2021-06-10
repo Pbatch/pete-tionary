@@ -28,7 +28,9 @@ const Dream = () => {
   const imageStyle = {...imageStyle_, width: `${80/(state.images.length + 2)}vw`}
 
   const images = state.images.map(({ url, username, prompt }) => {
-    const caption = (state.mode === END_OF_GAME) ? `${username}: "${prompt}"` : '' 
+    if (!prompt) return <div key={v4()}></div>
+    const cleanPrompt = prompt.replaceAll(/_/g," ")
+    const caption = (state.mode === END_OF_GAME) ? `${username}: "${cleanPrompt}"` : '' 
     return (
       <div key={v4()}>
         <img src={url} alt={url} onClick={handleClick} style={imageStyle} />

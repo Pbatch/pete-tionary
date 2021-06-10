@@ -22,8 +22,14 @@ const Game = () => {
   const [prompt, setPrompt] = useState('')
 
   const urlToPrompt = (url) => {
-    const regex = /(?<==)(.*?)(?=-)/
-    return regex.exec(url)[1].replace(/_/g, ' ')
+    // I have no idea how robust this function is
+    // This used to be a regex but it didn't work in Safari
+    // Example:
+    // url = "https://s3-eu-west-1.amazonaws.com/pictionary-bucket/prompt=squidward-seed=1.jpg"
+    // url.split('/').pop() => "prompt=squidward-seed=1.jpg"
+    // url.split('/').pop().split('=')[1] => "squidward-seed"
+    // url.split('/').pop().split('=')[1].split('-')[0] => "squidward"
+    return url.split('/').pop().split('=')[1].split('-')[0]
   }
   
   const mod = (a, b) => {
@@ -141,7 +147,7 @@ const Game = () => {
     e.preventDefault()
     // All prompts must be 1 to 50 lowercase alphabet characters
     const regex = /[a-z]{1,50}/
-    if (!regex.test(state.prompt)) return
+    if (!regex.test(prompt)) return
     dispatch(setMode(WAIT_FOR_IMAGES))
     generateImages()
     waitForImages()

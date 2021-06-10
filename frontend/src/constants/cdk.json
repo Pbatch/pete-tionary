@@ -1,17 +1,17 @@
 {
   "pictionary": {
     "container": "my_container",
-    "pictureBucket": "pictionary-mypicturebucket4cd3a363-4fc1j9zko2qd",
-    "mylambdaapiEndpointA8C81370": "https://rnjflhkj8f.execute-api.eu-west-1.amazonaws.com/prod/",
-    "lambdaUrl": "https://rnjflhkj8f.execute-api.eu-west-1.amazonaws.com/prod/",
-    "queueUrl": "https://sqs.eu-west-1.amazonaws.com/068121675185/pictionary-myqueueCA40C0D7-QO4ALZ31TBLN",
-    "graphqlUrl": "https://gi4xkftx5zfs7feycrfzrg3iji.appsync-api.eu-west-1.amazonaws.com/graphql",
-    "clusterArn": "arn:aws:ecs:eu-west-1:068121675185:cluster/pictionary-myclusterFE55B7AA-EYiolioCfLeu",
-    "taskDefinitionArn": "arn:aws:ecs:eu-west-1:068121675185:task-definition/pictionarymytask99A1755B:3",
+    "pictureBucket": "pictionary-mypicturebucket4cd3a363-1hjoccnn9yg10",
+    "mylambdaapiEndpointA8C81370": "https://syxk62xaff.execute-api.eu-west-1.amazonaws.com/prod/",
+    "lambdaUrl": "https://syxk62xaff.execute-api.eu-west-1.amazonaws.com/prod/",
+    "queueUrl": "https://sqs.eu-west-1.amazonaws.com/068121675185/pictionary-myqueueCA40C0D7-1OCGDLAD6IIV",
+    "graphqlUrl": "https://q3xqj57q4jcvtiyk7rouldoswu.appsync-api.eu-west-1.amazonaws.com/graphql",
+    "clusterArn": "arn:aws:ecs:eu-west-1:068121675185:cluster/pictionary-myclusterFE55B7AA-OtNjSUNxTsJT",
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-1:068121675185:task-definition/pictionarymytask99A1755B:5",
     "websiteUrl": "https://pictionary.pbatch.net",
-    "userPoolClientId": "2qkt4305hv7jqb86thdcfhv3gu",
+    "userPoolClientId": "631fee1kiia7e7q69lu2a506ne",
     "region": "eu-west-1",
     "deploymentBucket": "pictionary.pbatch.net",
-    "userPoolId": "eu-west-1_Kv6t2IHle"
+    "userPoolId": "eu-west-1_bKoa3sjcn"
   }
 }
