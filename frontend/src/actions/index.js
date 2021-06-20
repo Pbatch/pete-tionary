@@ -4,7 +4,8 @@ import {
   SET_ROUND,
   SET_MODE,
   SET_ADMIN,
-  SET_ROOM_NAME
+  SET_ROOM_NAME,
+  SET_USERNAMES
 } from '../constants/action-types'
 
 export const setUsername = (username) => ({
@@ -35,4 +36,9 @@ export const setAdmin = (admin) => ({
 export const setRoomName = (roomName) => ({
   type: SET_ROOM_NAME,
   roomName
+})
+
+export const setUsernames = (usernames) => ({
+  type: SET_USERNAMES,
+  usernames
 })
