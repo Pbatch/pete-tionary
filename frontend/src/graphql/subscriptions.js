@@ -15,7 +15,6 @@ export const OnCreateMessage = gql`
 export const OnCreateRoom = gql`
 subscription {
   onCreateRoom {
-    id 
     roomName
   }
 }
@@ -24,7 +23,6 @@ subscription {
 export const OnDeleteRoom = gql`
 subscription {
   onDeleteRoom {
-    id 
     roomName
   }
 }
