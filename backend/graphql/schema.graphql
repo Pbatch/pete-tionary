@@ -5,7 +5,7 @@ schema {
 }
 
 type Message {
-  id: ID!
+  id: String!
   roomName: String!
   round: Int!
   url: String!
@@ -19,22 +19,18 @@ type MessageConnection {
 
 type Mutation {
   createMessage(input: CreateMessageInput!): Message
-  createRoom(input: CreateRoomInput!): Room
-  deleteMessage(id: ID!): Message
-  deleteRoom(id: ID!): Room
-  updateMessage(input: UpdateMessageInput!): Message
-  updateRoom(input: UpdateRoomInput!): Room
+  createRoom(roomName: String!): Room
+  deleteRoom(roomName: String!): Room
 }
 
 type Query {
-  getMessage(id: ID!): Message
-  getRoom(id: ID!): Room
-  listMessages(filter: TableMessageFilterInput, limit: Int, nextToken: String): MessageConnection
-  listRooms(filter: TableRoomFilterInput, limit: Int, nextToken: String): RoomConnection
+  getMessage(id: String!): Message
+  getRoom(roomName: String!): Room
+  listMessages(roomName: String!, round: Int): MessageConnection
+  listRooms: RoomConnection
 }
 
 type Room {
-  id: ID!
   roomName: String!
 }
 
@@ -44,18 +40,12 @@ type RoomConnection {
 }
 
 type Subscription {
-  onCreateMessage(id: ID, roomName: String, round: Int, url: String, username: String): Message
+  onCreateMessage(id: String, roomName: String, round: Int, url: String, username: String): Message
     @aws_subscribe(mutations : ["createMessage"])
-  onCreateRoom(id: ID, roomName: String): Room
+  onCreateRoom(roomName: String): Room
     @aws_subscribe(mutations : ["createRoom"])
-  onDeleteMessage(id: ID, roomName: String, round: Int, url: String, username: String): Message
-    @aws_subscribe(mutations : ["deleteMessage"])
-  onDeleteRoom(id: ID, roomName: String): Room
+  onDeleteRoom(roomName: String): Room
     @aws_subscribe(mutations : ["deleteRoom"])
-  onUpdateMessage(id: ID, roomName: String, round: Int, url: String, username: String): Message
-    @aws_subscribe(mutations : ["updateMessage"])
-  onUpdateRoom(id: ID, roomName: String): Room
-    @aws_subscribe(mutations : ["updateRoom"])
 }
 
 input CreateMessageInput {
@@ -63,84 +53,4 @@ input CreateMessageInput {
   round: Int!
   url: String!
   username: String!
-}
-
-input CreateRoomInput {
-  roomName: String!
-}
-
-input TableFloatFilterInput {
-  between: [Float]
-  contains: Float
-  eq: Float
-  ge: Float
-  gt: Float
-  le: Float
-  lt: Float
-  ne: Float
-  notContains: Float
-}
-
-input TableIDFilterInput {
-  beginsWith: ID
-  between: [ID]
-  contains: ID
-  eq: ID
-  ge: ID
-  gt: ID
-  le: ID
-  lt: ID
-  ne: ID
-  notContains: ID
-}
-
-input TableIntFilterInput {
-  between: [Int]
-  contains: Int
-  eq: Int
-  ge: Int
-  gt: Int
-  le: Int
-  lt: Int
-  ne: Int
-  notContains: Int
-}
-
-input TableMessageFilterInput {
-  id: TableIDFilterInput
-  roomName: TableStringFilterInput
-  round: TableIntFilterInput
-  url: TableStringFilterInput
-  username: TableStringFilterInput
-}
-
-input TableRoomFilterInput {
-  id: TableIDFilterInput
-  roomName: TableStringFilterInput
-}
-
-input TableStringFilterInput {
-  beginsWith: String
-  between: [String]
-  contains: String
-  eq: String
-  ge: String
-  gt: String
-  le: String
-  lt: String
-  ne: String
-  notContains: String
-}
-
-input UpdateMessageInput {
-  id: ID!
-  roomName: String
-  round: Int
-  url: String
-  username: String
-}
-
-input UpdateRoomInput {
-  id: ID!
-  roomName: String
 }
