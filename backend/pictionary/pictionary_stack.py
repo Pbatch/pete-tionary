@@ -35,9 +35,7 @@ class PictionaryStack(core.Stack):
                          'subnet-27e1b741',
                          'subnet-4df5d405']
     INSTANCE_TYPE = 'g4dn.xlarge'
-    VCPUS = 4
     MEMORY_LIMIT_MIB = 15500
-    GPU_COUNT = 1
 
     def setup_queue(self):
         # Each job should take at most 2 minutes, so that is what the visibility timeout to be
@@ -78,10 +76,15 @@ class PictionaryStack(core.Stack):
                                   partition_key=partition_key,
                                   billing_mode=ddb.BillingMode.PAY_PER_REQUEST,
                                   removal_policy=core.RemovalPolicy.DESTROY)
+
+        # Add a GSI that groups the messages by roomName (so that we can query by roomName)
+        gsi_partition_key = ddb.Attribute(name='roomName', type=ddb.AttributeType.STRING)
+        message_table.add_global_secondary_index(index_name='messages-by-roomName',
+                                                 partition_key=gsi_partition_key)
         return message_table
 
     def setup_room_table(self):
-        partition_key = ddb.Attribute(name='id', type=ddb.AttributeType.STRING)
+        partition_key = ddb.Attribute(name='roomName', type=ddb.AttributeType.STRING)
         room_table = ddb.Table(self, 'my_room_table',
                                partition_key=partition_key,
                                billing_mode=ddb.BillingMode.PAY_PER_REQUEST,
@@ -111,9 +114,29 @@ class PictionaryStack(core.Stack):
         return room_table_data_source
 
     def setup_create_message_resolver(self):
-        key = appsync.PrimaryKey.partition('id').auto()
-        values = appsync.Values.projecting('input')
-        request_mapping_template = appsync.MappingTemplate.dynamo_db_put_item(key=key, values=values)
+        request_mapping_template_string = """
+        ## Set the ID as the concatenation of roomName, username and round
+        $util.qr($ctx.args.input.put("id", "${ctx.args.input.roomName}-${ctx.args.input.username}-${ctx.args.input.round}"))
+        
+        ## Ensure that the ID is unique
+        #set($condition = {
+            "expression": "attribute_not_exists(#id)",
+            "expressionNames": {
+                "#id": "id"
+            }
+        })
+        
+        {
+            "version": "2017-02-28",
+            "operation": "PutItem",
+            "key" : {
+              "id" : $util.dynamodb.toDynamoDBJson($ctx.args.input.id)
+            },
+            "attributeValues": $util.dynamodb.toMapValuesJson($ctx.args.input),
+            "condition": $util.toJson($condition)
+        }
+        """
+        request_mapping_template = appsync.MappingTemplate.from_string(request_mapping_template_string)
         response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
         self.message_table_data_source.create_resolver(type_name='Mutation',
                                                        field_name='createMessage',
@@ -121,7 +144,30 @@ class PictionaryStack(core.Stack):
                                                        response_mapping_template=response_mapping_template)
 
     def setup_list_messages_resolver(self):
-        request_mapping_template = appsync.MappingTemplate.dynamo_db_scan_table()
+        request_mapping_template_string = """
+        {
+            "version" : "2017-02-28",
+            "operation" : "Query",
+            "index" : "messages-by-roomName",
+            "query" : {
+                "expression" : "roomName = :roomName",
+                "expressionValues" : {
+                    ":roomName" : $util.dynamodb.toDynamoDBJson($ctx.args.roomName)
+                }
+            },
+            "filter" : 
+                #if($ctx.args.round) {
+                    "expression": "round = :round",
+                    "expressionValues": {
+                        ":round": $util.dynamodb.toDynamoDBJson($ctx.args.round)
+                    } 
+                } 
+                #else
+                    null 
+                #end
+        }
+        """
+        request_mapping_template = appsync.MappingTemplate.from_string(request_mapping_template_string)
         response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
         self.message_table_data_source.create_resolver(type_name='Query',
                                                        field_name='listMessages',
@@ -129,7 +175,16 @@ class PictionaryStack(core.Stack):
                                                        response_mapping_template=response_mapping_template)
 
     def setup_delete_message_resolver(self):
-        request_mapping_template = appsync.MappingTemplate.dynamo_db_delete_item('id', 'id')
+        request_mapping_template_string = """
+        {
+            "version" : "2017-02-28",
+            "operation" : "DeleteItem",
+            "key": {
+                "id": $util.dynamodb.toDynamoDBJson($ctx.args.id)
+            }
+        }
+        """
+        request_mapping_template = appsync.MappingTemplate.from_string(request_mapping_template_string)
         response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
         self.message_table_data_source.create_resolver(type_name='Mutation',
                                                        field_name='deleteMessage',
@@ -138,10 +193,28 @@ class PictionaryStack(core.Stack):
                                                        )
 
     def setup_create_room_resolver(self):
-        key = appsync.PrimaryKey.partition('id').auto()
-        values = appsync.Values.projecting('input')
-        request_mapping_template = appsync.MappingTemplate.dynamo_db_put_item(key=key, values=values)
+        request_mapping_template_string = """
+        ## Ensure that the roomName is unique
+        #set($condition = {
+            "expression": "attribute_not_exists(#roomName)",
+            "expressionNames": {
+                "#roomName": "roomName"
+            }
+        })
 
+        {
+            "version": "2017-02-28",
+            "operation": "PutItem",
+            "key" : {
+              "roomName" : $util.dynamodb.toDynamoDBJson($ctx.args.roomName)
+            },
+            "attributeValues": {
+              "roomName" : $util.dynamodb.toDynamoDBJson($ctx.args.roomName)
+            },
+            "condition": $util.toJson($condition)
+        }
+        """
+        request_mapping_template = appsync.MappingTemplate.from_string(request_mapping_template_string)
         response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
         self.room_table_data_source.create_resolver(type_name='Mutation',
                                                     field_name='createRoom',
@@ -149,7 +222,16 @@ class PictionaryStack(core.Stack):
                                                     response_mapping_template=response_mapping_template)
 
     def setup_delete_room_resolver(self):
-        request_mapping_template = appsync.MappingTemplate.dynamo_db_delete_item('id', 'id')
+        request_mapping_template_string = """
+        {
+            "version" : "2017-02-28",
+            "operation" : "DeleteItem",
+            "key": {
+                "roomName": $util.dynamodb.toDynamoDBJson($ctx.args.roomName)
+            }
+        }
+        """
+        request_mapping_template = appsync.MappingTemplate.from_string(request_mapping_template_string)
         response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
         self.room_table_data_source.create_resolver(type_name='Mutation',
                                                     field_name='deleteRoom',
@@ -283,7 +365,7 @@ class PictionaryStack(core.Stack):
                                             image=image,
                                             logging=logging,
                                             memory_reservation_mib=self.MEMORY_LIMIT_MIB,
-                                            gpu_count=self.GPU_COUNT)
+                                            gpu_count=1)
         return container
 
     def setup_images_lambda(self):
