@@ -38,13 +38,17 @@ const Lobby = () => {
     setRooms(rooms)
   }
 
-  const createRoom = async () => {
-    // Warning! This causes disaster if the roomName is not unique
+  const createRoom = () => {
     const roomName = sampleSize(alphabet, 4).join('')
     const payload = {'roomName': roomName}
-    API.graphql(graphqlOperation(CreateRoom, payload))
-    dispatch(setAdmin(roomName))
-    enterRoom(roomName)
+    try {
+      API.graphql(graphqlOperation(CreateRoom, payload))
+      dispatch(setAdmin(roomName))
+      enterRoom(roomName)
+    } catch(e) {
+      // An error may be thrown if the roomName is not unique
+      console.log(e)
+    }
   }
 
   const handleCreateRoomSubmit = (e) => {
@@ -57,8 +61,8 @@ const Lobby = () => {
     enterRoom(roomName)
   }
 
-  const enterRoom = async (roomName) => {       
-    // Send an empty message to claim your space in the room
+  const enterRoom = (roomName) => {       
+    // Send an empty message to claim a spot in the room
     const message = {url: '', round: 0, username: state.username, roomName: roomName}
     API.graphql(graphqlOperation(CreateMessage, message))
 
