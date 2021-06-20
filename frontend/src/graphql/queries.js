@@ -1,8 +1,8 @@
 import gql from 'graphql-tag';
 
 export const ListMessages = gql`
-  query {
-    listMessages {
+  query($roomName: String!, $round: Int) {
+    listMessages(roomName: $roomName, round: $round) {
       items {
         id 
         roomName
@@ -18,7 +18,6 @@ export const ListRooms = gql`
   query {
     listRooms {
       items {
-        id 
         roomName
       }
     }
