@@ -12,7 +12,7 @@ const Store = () => {
   
   store.subscribe(throttle(() => {
     saveState(store.getState())
-  }, 1000))
+  }, 100))
 
   return (store)
 }
