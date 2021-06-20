@@ -5,6 +5,7 @@ import username from './username'
 import mode from './mode'
 import admin from './admin'
 import roomName from './roomName'
+import usernames from './usernames'
 
 export default combineReducers({ 
   round,
@@ -12,5 +13,6 @@ export default combineReducers({
   username,
   mode,
   admin,
-  roomName
+  roomName,
+  usernames
 })
