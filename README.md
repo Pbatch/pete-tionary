@@ -42,24 +42,23 @@ and to [Ryan Murdock](https://twitter.com/advadnoun) for the discovery of the te
 ## TODOS
 
 * Add comments to the code...
+* Age off messages more than an hour old
 * Fix design for different screen sizes
 * Connect Redux state with Amplify
-* Fix duplicate requests to create item in DynamoDB
-* Fix regex in game.js to not use look behind (doesn't work in Safari)
-* Can change the resolver for listMessages so that a filter can be added
-* Can make the S3 URL checks a graphQL subscription (instead of pinging from Lambda) 
+* Make the S3 URL checks a graphQL subscription (instead of pinging from Lambda) 
+* Allow users to see all pictures at the end of the game (instead of just their own)
 
 ## Possible improvements
 
 * Faster convergence of the SIREN network
-* Cheaper/faster infrastructure (the current version of the website costs about 50p/h)
+* Cheaper/faster infrastructure (the current version of the website costs about £0.50 an hour)
 * The ability to use a custom seed image
 * Test other image synthesis methods (VQ-GAN...)
 * Whatever you guys put in issues... :)
  
 ## Deploying your own version of the website
 
-0.) Install AWS CDK and AWS CLI
+0.) Install AWS CDK and the AWS CLI
 
 1.) Make a private ECR repository
 
@@ -67,11 +66,19 @@ and to [Ryan Murdock](https://twitter.com/advadnoun) for the discovery of the te
 
 3.) Set the global variables in `backend/pictionary/pictionary_stack.py`
 
-4.) Deploy the CloudFormation stack
+4.) Deploy the CloudFormation stack (run this command in `backend`)
 
 ```
 cdk deploy --outputs-file "../frontend/src/constants/cdk.json"
 ```
+
+5.) Build the website (run this command in `frontend`)
+
+```
+npm run build
+```
+
+6.) Deploy the CloudFormation stack again (See step 4)
 
 5.) Start the server
 
