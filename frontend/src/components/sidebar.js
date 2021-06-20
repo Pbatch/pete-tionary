@@ -1,26 +1,25 @@
 import { v4 } from 'node-uuid'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import { API, graphqlOperation } from 'aws-amplify'
-import React, { useState, useEffect } from 'react'
-import { ListMessages, ListRooms } from '../graphql/queries'
+import React, { useEffect } from 'react'
+import { ListMessages } from '../graphql/queries'
 import { OnCreateMessage } from '../graphql/subscriptions'
-import { DeleteRoom, DeleteMessage } from '../graphql/mutations'
+import { DeleteRoom } from '../graphql/mutations'
 import { END_OF_GAME, WAIT_FOR_START, SELECT_ROOM } from '../constants/modes'
-import { setMode, setImages, setRound, setRoomName } from '../actions/index'
+import { setMode, setImages, setRound, setRoomName, setUsernames } from '../actions/index'
 
 const Sidebar = () => {
   const dispatch = useDispatch()
   const state = useSelector(state => state, shallowEqual)
-  const [usernames, setUsernames] = useState([])
 
   useEffect(() => {
     const fetchAndSetUsernames = async () => {
-      const messageData = await API.graphql(graphqlOperation(ListMessages))
+      const payload = {roomName: state.roomName, round: 0}
+      const messageData = await API.graphql(graphqlOperation(ListMessages, payload))
       const usernames = messageData.data.listMessages.items
-      .filter(m => m.roomName === state.roomName && m.round === 0)
-      .sort((m1, m2) => (m1.username > m2.username) - (m1.username < m2.username))
       .map(m => m.username)
-      setUsernames(usernames)
+      .sort()
+      dispatch(setUsernames(usernames))
     }
 
     // As state.roomName is a dependency, the usernames are fetched when state.roomName changes
@@ -34,49 +33,36 @@ const Sidebar = () => {
     return () =>  {
       subscription.unsubscribe()
     }
-  }, [state.roomName])
+  }, [state.roomName, dispatch])
 
   async function handleStartSubmit(e) {
     e.preventDefault()
-    const roomData = await API.graphql(graphqlOperation(ListRooms))
-    const rooms = roomData.data.listRooms.items 
-    const roomIds = rooms
-    .filter(r => r.roomName === state.roomName)
-    .map(r => r.id)
 
-    if (roomIds.length > 0) {
-      const payload = {'id': roomIds[0]}
-      API.graphql(graphqlOperation(DeleteRoom, payload))
-    }
+    // Delete the room so that no more players can join
+    const payload = {'roomName': state.roomName}
+    API.graphql(graphqlOperation(DeleteRoom, payload))
   }
 
-  async function handleLobbySubmit(e) {
+  function handleLobbySubmit(e) {
     e.preventDefault()
-
-    // Delete all of your messages
-    const messageData = await API.graphql(graphqlOperation(ListMessages))
-    const messages = messageData.data.listMessages.items
-    .filter(m => m.username === state.username)
-    messages.forEach(m => {
-      const payload = {'id': m.id}
-      API.graphql(graphqlOperation(DeleteMessage, payload))
-    })
-
     dispatch(setMode(SELECT_ROOM))
     dispatch(setImages([]))
     dispatch(setRound(0))
     dispatch(setRoomName(''))
+    dispatch(setUsernames([]))
   }
 
-  let usernameList = usernames.map((username) => {
+  let usernameList = state.usernames.map((username) => {
     return (<div key={v4()}>{username}</div>)
   })
 
+  // The start button is visible if you are the admin and waiting for the game to start
   const startButtonVisible = (state.admin === state.roomName) && (state.mode === WAIT_FOR_START)
   const startButton = (startButtonVisible 
     ? <button style={buttonStyle} onClick={handleStartSubmit}>Start</button> 
     : <div></div>)
 
+  // You can only return to the lobby and the beginning or the end of the game
   const lobbyButtonVisible = [END_OF_GAME, WAIT_FOR_START].includes(state.mode)
   const lobbyButton = (lobbyButtonVisible
     ? <button style={buttonStyle} onClick={handleLobbySubmit}>Lobby</button>
