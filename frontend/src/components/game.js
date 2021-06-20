@@ -52,24 +52,24 @@ const Game = () => {
     let messageSubscription = API.graphql(graphqlOperation(OnCreateMessage))
     .subscribe({
       next: async () => {
-        const messageData = await API.graphql(graphqlOperation(ListMessages))
-        const messages = messageData.data.listMessages.items
-        .filter(m => m.roomName === state.roomName)
-        .sort((m1, m2) => (m1.username > m2.username) - (m1.username < m2.username))
-        const usernames = messages
-        .filter(m => m.round === 0)
-        .map(m => m.username)
-        const nUsers = usernames.length
-        const usernameIndex = usernames.indexOf(state.username)
         const newRound = state.round + 1
-        const currentRoundEntries = messages
-        .filter(m => m.round === newRound) 
+        const nUsers = state.usernames.length
+        const usernameIndex = state.usernames.indexOf(state.username)
+        let payload = {'roomName': state.roomName, 'round': newRound}
+        let messageData = await API.graphql(graphqlOperation(ListMessages, payload))
+        let messages = messageData.data.listMessages.items
+        .sort((m1, m2) => (m1.username > m2.username) - (m1.username < m2.username))
 
         // Not everyone's images are ready yet
-        if (nUsers !== currentRoundEntries.length) return
+        if (nUsers !== messages.length) return
         
         let newImages = []
         if (newRound === nUsers) {
+          // Fetch all the messages from the entire game
+          let payload = {'roomName': state.roomName}
+          let messageData = await API.graphql(graphqlOperation(ListMessages, payload))
+          let messages = messageData.data.listMessages.items
+
           // Get the usernames picture from the 1st round, 
           // the previous usernames picture from the 2nd round etc.
           for (let round=1; round <= nUsers; round++) {
@@ -86,7 +86,7 @@ const Game = () => {
           dispatch(setMode(END_OF_GAME))
         }
         else {
-          let message = currentRoundEntries[mod(usernameIndex + 1, nUsers)]
+          let message = messages[mod(usernameIndex + 1, nUsers)]
           newImages.push({'url': message.url,
                           'username': message.username,
                           'prompt': urlToPrompt(message.url)
