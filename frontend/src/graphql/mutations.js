@@ -19,26 +19,24 @@ export const CreateMessage = gql`
 
 export const CreateRoom = gql`
   mutation($roomName: String!) {
-    createRoom(input: {
-      roomName: $roomName
-    }) {
-      id 
+    createRoom(roomName: $roomName) 
+    {
       roomName
     }
   }
 `
 
 export const DeleteRoom = gql`
-  mutation($id: ID!) {
-    deleteRoom(id: $id) 
+  mutation($roomName: String!) {
+    deleteRoom(roomName: $roomName) 
     {
-      id 
+      roomName
     }
   }
 `
 
 export const DeleteMessage = gql`
-  mutation($id: ID!) {
+  mutation($id: String!) {
     deleteMessage(id: $id) 
     {
       id 
