@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import { LAMBDA_CONFIG } from '../constants/config'
 import { OnCreateMessage, OnDeleteRoom } from '../graphql/subscriptions'
-import { ListMessages, ListRooms } from '../graphql/queries'
+import { ListMessages } from '../graphql/queries'
 import { API, graphqlOperation } from 'aws-amplify'
 import { setImages, setRound, setMode, setAdmin } from '../actions/index'
 import { 
@@ -37,19 +37,16 @@ const Game = () => {
   }  
 
   useEffect(() => {
-    let roomSubscription = API.graphql(graphqlOperation(OnDeleteRoom))
+    let onDeleteRoomPayload = {'roomName': state.roomName}
+    let roomSubscription = API.graphql(graphqlOperation(OnDeleteRoom, onDeleteRoomPayload))
     .subscribe({
       next: async() => {
-        const roomData = await API.graphql(graphqlOperation(ListRooms))
-        const rooms = roomData.data.listRooms.items
-        const roomStarted = !rooms.map(r => r.roomName).includes(state.roomName)
-        if (roomStarted) {
-          dispatch(setMode(WRITE_PROMPT))
-        }
+        dispatch(setMode(WRITE_PROMPT))
       }
     })
 
-    let messageSubscription = API.graphql(graphqlOperation(OnCreateMessage))
+    let onCreateMessagePayload = {'roomName': state.roomName}
+    let messageSubscription = API.graphql(graphqlOperation(OnCreateMessage, onCreateMessagePayload))
     .subscribe({
       next: async () => {
         const newRound = state.round + 1
@@ -61,7 +58,7 @@ const Game = () => {
         .sort((m1, m2) => (m1.username > m2.username) - (m1.username < m2.username))
 
         // Not everyone's images are ready yet
-        if (nUsers !== messages.length) return
+        if ((nUsers !== messages.length) || (nUsers === 0)) return
         
         let newImages = []
         if (newRound === nUsers) {
@@ -69,11 +66,13 @@ const Game = () => {
           let payload = {'roomName': state.roomName}
           let messageData = await API.graphql(graphqlOperation(ListMessages, payload))
           let messages = messageData.data.listMessages.items
+          .sort((m1, m2) => (m1.username > m2.username) - (m1.username < m2.username))
 
           // Get the usernames picture from the 1st round, 
           // the previous usernames picture from the 2nd round etc.
           for (let round=1; round <= nUsers; round++) {
             let roundEntries = messages.filter(m => m.round === round)
+            console.log('roundEntries', roundEntries)
             let message = roundEntries[mod(usernameIndex - round + 1, nUsers)]
             newImages.push({'url': message.url,
                             'username': message.username,
