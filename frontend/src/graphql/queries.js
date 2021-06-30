@@ -9,6 +9,7 @@ export const ListMessages = gql`
         round
         url
         username
+        ttl
       }
     }
   }
@@ -19,6 +20,7 @@ export const ListRooms = gql`
     listRooms {
       items {
         roomName
+        ttl
       }
     }
   }
