@@ -1,13 +1,14 @@
 import gql from 'graphql-tag';
 
 export const OnCreateMessage = gql`
-  subscription {
-    onCreateMessage {
+  subscription($roomName: String) {
+    onCreateMessage(roomName: $roomName) {
       id 
       roomName
       round
       url
       username
+      ttl
     }
   }
 `
@@ -16,14 +17,16 @@ export const OnCreateRoom = gql`
 subscription {
   onCreateRoom {
     roomName
+    ttl
   }
 }
 `
 
 export const OnDeleteRoom = gql`
-subscription {
-  onDeleteRoom {
+subscription($roomName: String) {
+  onDeleteRoom(roomName: $roomName) {
     roomName
+    ttl
   }
 }
 `
