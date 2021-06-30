@@ -10,6 +10,7 @@ type Message {
   round: Int!
   url: String!
   username: String!
+  ttl: Int!
 }
 
 type MessageConnection {
@@ -32,6 +33,7 @@ type Query {
 
 type Room {
   roomName: String!
+  ttl: Int!
 }
 
 type RoomConnection {
@@ -40,9 +42,9 @@ type RoomConnection {
 }
 
 type Subscription {
-  onCreateMessage(id: String, roomName: String, round: Int, url: String, username: String): Message
+  onCreateMessage(roomName: String): Message
     @aws_subscribe(mutations : ["createMessage"])
-  onCreateRoom(roomName: String): Room
+  onCreateRoom: Room
     @aws_subscribe(mutations : ["createRoom"])
   onDeleteRoom(roomName: String): Room
     @aws_subscribe(mutations : ["deleteRoom"])
