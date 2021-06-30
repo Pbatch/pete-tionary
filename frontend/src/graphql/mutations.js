@@ -13,6 +13,7 @@ export const CreateMessage = gql`
       round
       url
       username
+      ttl
     }
   }
 `
@@ -22,6 +23,7 @@ export const CreateRoom = gql`
     createRoom(roomName: $roomName) 
     {
       roomName
+      ttl
     }
   }
 `
