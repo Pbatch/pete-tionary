@@ -75,7 +75,8 @@ class PictionaryStack(core.Stack):
         message_table = ddb.Table(self, 'my_message_table',
                                   partition_key=partition_key,
                                   billing_mode=ddb.BillingMode.PAY_PER_REQUEST,
-                                  removal_policy=core.RemovalPolicy.DESTROY)
+                                  removal_policy=core.RemovalPolicy.DESTROY,
+                                  time_to_live_attribute='ttl')
 
         # Add a GSI that groups the messages by roomName (so that we can query by roomName)
         gsi_partition_key = ddb.Attribute(name='roomName', type=ddb.AttributeType.STRING)
@@ -88,7 +89,8 @@ class PictionaryStack(core.Stack):
         room_table = ddb.Table(self, 'my_room_table',
                                partition_key=partition_key,
                                billing_mode=ddb.BillingMode.PAY_PER_REQUEST,
-                               removal_policy=core.RemovalPolicy.DESTROY)
+                               removal_policy=core.RemovalPolicy.DESTROY,
+                               time_to_live_attribute='ttl')
         return room_table
 
     def setup_graphql_api(self):
@@ -117,6 +119,10 @@ class PictionaryStack(core.Stack):
         request_mapping_template_string = """
         ## Set the ID as the concatenation of roomName, username and round
         $util.qr($ctx.args.input.put("id", "${ctx.args.input.roomName}-${ctx.args.input.username}-${ctx.args.input.round}"))
+        
+        ## Set the time-to-live as the current time plus 2 hours (7200 seconds)
+        #set($ttl = $util.time.nowEpochSeconds() + 7200)
+        $util.qr($ctx.args.input.put("ttl", $ttl))
         
         ## Ensure that the ID is unique
         #set($condition = {
@@ -174,26 +180,11 @@ class PictionaryStack(core.Stack):
                                                        request_mapping_template=request_mapping_template,
                                                        response_mapping_template=response_mapping_template)
 
-    def setup_delete_message_resolver(self):
-        request_mapping_template_string = """
-        {
-            "version" : "2017-02-28",
-            "operation" : "DeleteItem",
-            "key": {
-                "id": $util.dynamodb.toDynamoDBJson($ctx.args.id)
-            }
-        }
-        """
-        request_mapping_template = appsync.MappingTemplate.from_string(request_mapping_template_string)
-        response_mapping_template = appsync.MappingTemplate.dynamo_db_result_item()
-        self.message_table_data_source.create_resolver(type_name='Mutation',
-                                                       field_name='deleteMessage',
-                                                       request_mapping_template=request_mapping_template,
-                                                       response_mapping_template=response_mapping_template
-                                                       )
-
     def setup_create_room_resolver(self):
         request_mapping_template_string = """
+        ## Set the time-to-live as the current time plus 2 hours (7200 seconds)
+        #set($ttl = $util.time.nowEpochSeconds() + 7200)
+        
         ## Ensure that the roomName is unique
         #set($condition = {
             "expression": "attribute_not_exists(#roomName)",
@@ -209,7 +200,8 @@ class PictionaryStack(core.Stack):
               "roomName" : $util.dynamodb.toDynamoDBJson($ctx.args.roomName)
             },
             "attributeValues": {
-              "roomName" : $util.dynamodb.toDynamoDBJson($ctx.args.roomName)
+              "roomName" : $util.dynamodb.toDynamoDBJson($ctx.args.roomName),
+              "ttl": $util.dynamodb.toDynamoDBJson($ttl)
             },
             "condition": $util.toJson($condition)
         }
@@ -337,7 +329,7 @@ class PictionaryStack(core.Stack):
         auto_scaling_group = self.cluster.add_capacity('my_capacity',
                                                        instance_type=instance_type,
                                                        machine_image=machine_image,
-                                                       min_capacity=1,
+                                                       min_capacity=0,
                                                        max_capacity=1,
                                                        allow_all_outbound=True)
         return auto_scaling_group
@@ -406,7 +398,6 @@ class PictionaryStack(core.Stack):
         self.room_table_data_source = self.setup_room_table_data_source()
         self.setup_create_message_resolver()
         self.setup_list_messages_resolver()
-        self.setup_delete_message_resolver()
         self.setup_create_room_resolver()
         self.setup_list_rooms_resolver()
         self.setup_delete_room_resolver()
