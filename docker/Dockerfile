@@ -7,7 +7,7 @@ RUN apt-get update && \
     pip3 install --upgrade pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install ftfy einops boto3 regex
+    pip install ftfy einops boto3 regex kornia
 
 # Copy the files required for downloading the CLIP weights
 COPY clip.py utils.py download.py ./
