@@ -4,7 +4,6 @@ import hashlib
 import urllib.request
 import warnings
 from tqdm import tqdm
-from torchvision.transforms import Compose, Normalize
 from clip import CLIP
 from torch import nn
 
@@ -50,9 +49,9 @@ def download_vit():
 
 
 def load_perceptor(path):
-    perceptor, clip_norm = load(path)
+    perceptor = load(path)
     perceptor = perceptor.eval().requires_grad_(False)
-    return perceptor, clip_norm
+    return perceptor
 
 
 def load(path):
@@ -62,7 +61,7 @@ def load(path):
     model = build_model(model.state_dict()).to(device)
     if str(device) == "cpu":
         model.float()
-    return model, _transform()
+    return model
 
 
 def build_model(state_dict):
@@ -93,12 +92,6 @@ def build_model(state_dict):
     convert_weights(model)
     model.load_state_dict(state_dict)
     return model.eval()
-
-
-def _transform():
-    return Compose([
-        Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)),
-    ])
 
 
 def convert_weights(model):
