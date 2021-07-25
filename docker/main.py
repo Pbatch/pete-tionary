@@ -11,29 +11,24 @@ import time
 s3_client = boto3.client('s3')
 
 
-def create_images(prompt, perceptor, clip_norm, bucket):
-    for seed in range(3):
-        # Set the random state
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed(seed)
-        random.seed(seed)
-        torch.backends.cudnn.deterministic = True
+def create_images(prompt, perceptor, bucket):
+    # Generate the image
+    model = DeepDaze(perceptor, n_images=3)
+    imagine = Imagine(prompt=prompt, model=model)
+    imagine()
 
-        # Generate the image
-        model = DeepDaze(perceptor, clip_norm)
-        imagine = Imagine(prompt=prompt, model=model)
-        imagine()
-
-        # Save the image
-        save_path = f'prompt={prompt.replace(" ", "_")}-seed={seed}.jpg'
-        imagine.save(save_path)
+    # Save the images
+    save_paths = [f'prompt={prompt.replace(" ", "_")}-seed={seed}.jpg'
+                  for seed in range(3)]
+    imagine.save(save_paths)
+    for save_path in save_paths:
         s3_client.upload_file(save_path, bucket, save_path)
 
 
 def poll_queue(queue_url, bucket, region):
     # Load the CLIP perceptor
     path = os.path.expanduser('~/.cache/clip/ViT-B-32.pt')
-    perceptor, clip_norm = load_perceptor(path)
+    perceptor = load_perceptor(path)
 
     # Continuously poll the queue
     queue = boto3.resource('sqs', region_name=region).Queue(queue_url)
@@ -43,7 +38,7 @@ def poll_queue(queue_url, bucket, region):
         if response:
             message = response[0]
             prompt = message.body
-            create_images(prompt, perceptor, clip_norm, bucket)
+            create_images(prompt, perceptor, bucket)
             message.delete()
         else:
             time.sleep(1)
