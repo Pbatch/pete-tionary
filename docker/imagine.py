@@ -5,6 +5,7 @@ from torch.optim import AdamW
 from torchvision.transforms import ToPILImage
 from tqdm.autonotebook import tqdm
 from tokenizer import tokenize
+import PIL
 
 
 class Imagine(nn.Module):
@@ -22,7 +23,7 @@ class Imagine(nn.Module):
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.scaler = GradScaler()
-        self.optimizer = AdamW(self.model.generator.parameters(), lr=self.lr)
+        self.optimizer = AdamW(self.model.generators.parameters(), lr=self.lr)
 
         self.model.to(self.device)
         self.clip_encoding = self.create_encoding()
@@ -45,9 +46,12 @@ class Imagine(nn.Module):
                 self.scaler.update()
                 self.optimizer.zero_grad(set_to_none=True)
 
-    def save(self, save_path):
-        self.model.generator.eval()
+    def save(self, save_paths, size=256):
+        self.model.generators.eval()
         with torch.no_grad():
-            img = self.model(self.clip_encoding, return_loss=False).cpu().float().clamp(0., 1.)
-            img = ToPILImage()(img.squeeze())
-            img.save(save_path, quality=95, subsampling=0)
+            imgs = self.model(self.clip_encoding, return_loss=False)
+            for img, save_path in zip(imgs, save_paths):
+                img = img.cpu().float().clamp(0., 1.)
+                img = ToPILImage()(img.squeeze())
+                img = img.resize((size, size), resample=PIL.Image.BICUBIC)
+                img.save(save_path, quality=95, subsampling=0)
