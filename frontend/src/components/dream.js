@@ -5,6 +5,8 @@ import { WAIT_FOR_PLAYERS, SELECT_IMAGE, END_OF_GAME } from '../constants/modes'
 import { CreateMessage } from '../graphql/mutations'
 import { API, graphqlOperation } from 'aws-amplify'
 import { useEffect, useState } from 'react'
+import { styles } from '../styles'
+import Radium from 'radium'
 
 const Dream = () => {
   const dispatch = useDispatch()
@@ -24,11 +26,13 @@ const Dream = () => {
       dispatch(setImages(newImages))
       dispatch(setMode(WAIT_FOR_PLAYERS))
     }
-    const imageStyle = {...imageStyle_, width: `${80/(state.images.length + 2)}vw`}
+    const imageStyle = {...imageStyle_, 
+                        width: `${80/(state.images.length + 2)}vw`}
     const newImageDisplay = state.images.map(({ url, username, prompt }) => {
       if (!prompt) return <div key={v4()}></div>
-      const cleanPrompt = prompt.replaceAll(/_/g," ")
-      const caption = (state.mode === END_OF_GAME) ? `${username}: "${cleanPrompt}"` : '' 
+      const cleanPrompt = prompt.replaceAll(/_/g, " ")
+      const captionText = `${username}: "${cleanPrompt}"`
+      const caption = (state.mode === END_OF_GAME) ? captionText : '' 
       return (
         <div key={v4()}>
           <img src={url} alt={url} onClick={handleClick} style={imageStyle} />
@@ -46,7 +50,7 @@ const Dream = () => {
   )
 }
 
-const imageStyle_ = {border: '1px solid black'}
+const imageStyle_ = {border: '1px solid white'}
 
 const dreamStyle = {display: 'flex',
                     alignItems: 'center',
@@ -55,9 +59,8 @@ const dreamStyle = {display: 'flex',
                     margin: '1em',
                     minHeight: '40vh'}
 
-const captionStyle = {padding: '1em',
-                      fontFamily: 'Courier New, monospace',
-                      textAlign: 'center',
-                      fontSize: '1em'}
+const captionStyle = {...styles.font,
+                      padding: '1em',
+                      maxWidth: '20em'}
 
-export default Dream
+export default Radium(Dream)
