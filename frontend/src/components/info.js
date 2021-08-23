@@ -7,6 +7,7 @@ import {
   WAIT_FOR_START
 } from '../constants/modes'
 import { useSelector, shallowEqual } from 'react-redux'
+import { styles } from '../styles'
 
 const Info = () => {
   const mode = useSelector(state => state.mode, shallowEqual)
@@ -33,7 +34,7 @@ const Info = () => {
 }
 
 const infoStyle = {
-  fontFamily: 'Courier New, monospace',
+  ...styles.font,
   textAlign: 'center',
   fontSize: '1.5em'
 }
