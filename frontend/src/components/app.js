@@ -5,6 +5,7 @@ import { Auth, Hub } from 'aws-amplify'
 import { setUsername } from '../actions/index'
 import Lobby from './lobby'
 import Game from './game'
+import Header from './header'
 
 const App = () => {
   const state = useSelector(state => state, shallowEqual)
@@ -26,15 +27,23 @@ const App = () => {
     }
   }, [dispatch])
 
+  let screen
   if (state.username === '') {
-    return <Authenticator />
+    screen = <Authenticator />
   }
   else if (state.roomName !== '') {
-    return <Game />
+    screen = <Game />
   }
   else {
-    return <Lobby />
+    screen = <Lobby />
   }
+
+  return (
+    <div>
+      <Header />
+      {screen}
+    </div>
+  )
 }
 
 export default App
