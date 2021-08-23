@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import { LAMBDA_CONFIG } from '../constants/config'
 import { OnCreateMessage, OnDeleteRoom } from '../graphql/subscriptions'
@@ -19,7 +19,6 @@ import Info from './info'
 const Game = () => {
   const dispatch = useDispatch()
   const state = useSelector(state => state, shallowEqual)
-  const [prompt, setPrompt] = useState('')
 
   const urlToPrompt = (url) => {
     // I have no idea how robust this function is
@@ -72,7 +71,6 @@ const Game = () => {
           // the previous usernames picture from the 2nd round etc.
           for (let round=1; round <= nUsers; round++) {
             let roundEntries = messages.filter(m => m.round === round)
-            console.log('roundEntries', roundEntries)
             let message = roundEntries[mod(usernameIndex - round + 1, nUsers)]
             newImages.push({'url': message.url,
                             'username': message.username,
@@ -92,7 +90,6 @@ const Game = () => {
                          })
           dispatch(setRound(newRound))
           dispatch(setMode(WRITE_PROMPT))
-          setPrompt('')
         }
         dispatch(setImages(newImages))
       }
@@ -103,7 +100,7 @@ const Game = () => {
     }
   }, [dispatch, state])
   
-  function generateImages() {
+  function generateImages(prompt) {
     const payload = {'function': 'generate_images',
                      'queueUrl': LAMBDA_CONFIG['queueUrl'],
                      'bucket': LAMBDA_CONFIG['bucket'],
@@ -114,7 +111,7 @@ const Game = () => {
     })
   }
 
-  async function checkImagesReady() {
+  async function checkImagesReady(prompt) {
     const payload = {'function': 'check_images_ready',
                      'bucket': LAMBDA_CONFIG['bucket'],
                      'prompt': prompt}
@@ -125,10 +122,10 @@ const Game = () => {
     return response.json()
   }
 
-  async function waitForImages(){
-    let imagesReady = await checkImagesReady()
+  async function waitForImages(prompt){
+    let imagesReady = await checkImagesReady(prompt)
     if (imagesReady === 'not ready') {
-      setTimeout(waitForImages, 10000)
+      setTimeout(waitForImages, 10000, prompt)
     } else {
       let newImages = []
       for (let i=0; i<3; i++) {
@@ -144,12 +141,18 @@ const Game = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // All prompts must be 1 to 50 lowercase alphabet characters
-    const regex = /[a-z]{1,50}/
+
+    // Replace all whitespace with a single space
+    // Then replace the single spaces with underscores
+    // Then make all characters lowercase
+    const prompt = e.target[0].value.replace(/\s+/g, ' ').replace(/ /g, '_').toLowerCase()
+
+    // All prompts must be 1 to 50 lowercase alphabet characters (+ underscores)
+    const regex = /^[a-z_]{1,50}$/
     if (!regex.test(prompt)) return
     dispatch(setMode(WAIT_FOR_IMAGES))
-    generateImages()
-    waitForImages()
+    generateImages(prompt)
+    waitForImages(prompt)
   }
 
   return (
@@ -161,8 +164,6 @@ const Game = () => {
         <Info />
         <Dream />
         <Form 
-          prompt={prompt}
-          setPrompt={setPrompt}
           handleSubmit={handleSubmit} 
         />
       </div>
@@ -171,7 +172,6 @@ const Game = () => {
 }
 
 const appStyle = {textAlign: 'center', 
-                  backgroundColor: 'white',
                   margin: '1em',
                   display: 'flex'}
 
