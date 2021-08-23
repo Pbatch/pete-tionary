@@ -8,6 +8,7 @@ import { Provider } from 'react-redux'
 
 Amplify.configure(AMPLIFY_CONFIG)
 const store = configureStore()
+document.body.style = 'background: #333; margin: 0'
 
 ReactDOM.render(
   <Provider store={store}>
