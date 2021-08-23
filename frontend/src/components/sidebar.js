@@ -7,6 +7,8 @@ import { OnCreateMessage } from '../graphql/subscriptions'
 import { DeleteRoom } from '../graphql/mutations'
 import { END_OF_GAME, WAIT_FOR_START, SELECT_ROOM } from '../constants/modes'
 import { setMode, setImages, setRound, setRoomName, setUsernames } from '../actions/index'
+import { styles } from '../styles'
+import Radium from 'radium'
 
 const Sidebar = () => {
   const dispatch = useDispatch()
@@ -58,14 +60,16 @@ const Sidebar = () => {
 
   // The start button is visible if you are the admin and waiting for the game to start
   const startButtonVisible = (state.admin === state.roomName) && (state.mode === WAIT_FOR_START)
+  // The start button needs a key for hovering to work properly
   const startButton = (startButtonVisible 
-    ? <button style={buttonStyle} onClick={handleStartSubmit}>Start</button> 
+    ? <button style={buttonStyle} onClick={handleStartSubmit} key={'startButton'}>Start</button> 
     : <div></div>)
 
   // You can only return to the lobby and the beginning or the end of the game
   const lobbyButtonVisible = [END_OF_GAME, WAIT_FOR_START].includes(state.mode)
+  // The lobby button needs a key for hovering to work properly
   const lobbyButton = (lobbyButtonVisible
-    ? <button style={buttonStyle} onClick={handleLobbySubmit}>Lobby</button>
+    ? <button style={buttonStyle} onClick={handleLobbySubmit} key={'lobbyButton'}>Lobby</button>
     : <div></div>
   )
 
@@ -91,14 +95,13 @@ const Sidebar = () => {
 }
 
 const sidebarStyle = {
-  fontFamily: 'Courier New, monospace',
-  textAlign: 'center',
+  ...styles.font,
   fontSize: '2em'
 }
 
 const buttonStyle = {
-  width: '4em',
-  fontSize: '1em'
+  ...styles.button,
+  width: '4em'
 }
 
-export default Sidebar
+export default Radium(Sidebar)
