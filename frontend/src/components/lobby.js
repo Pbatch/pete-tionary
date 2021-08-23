@@ -8,6 +8,8 @@ import { sampleSize } from 'lodash'
 import { v4 } from 'node-uuid'
 import { setMode, setAdmin, setImages, setRound, setRoomName } from '../actions'
 import { SELECT_ROOM, WAIT_FOR_START } from '../constants/modes'
+import { styles } from '../styles'
+import Radium from 'radium'
 
 const Lobby = () => {
   const state = useSelector(state => state, shallowEqual)
@@ -61,16 +63,16 @@ const Lobby = () => {
     enterRoom(roomName)
   }
 
-  const enterRoom = (roomName) => {       
-    // Send an empty message to claim a spot in the room
-    const message = {url: '', round: 0, username: state.username, roomName: roomName}
-    API.graphql(graphqlOperation(CreateMessage, message))
-
+  const enterRoom = (roomName) => {  
     // Set the initial state
     dispatch(setMode(WAIT_FOR_START))
     dispatch(setImages([]))
     dispatch(setRound(0))
     dispatch(setRoomName(roomName))
+
+    // Send an empty message to claim a spot in the room
+    const message = {url: '', round: 0, username: state.username, roomName: roomName}
+    API.graphql(graphqlOperation(CreateMessage, message))
   }
 
   const roomButtons = rooms.map(({roomName}) => {
@@ -114,16 +116,14 @@ const Lobby = () => {
   )
 }
 
-const titleStyle = {fontWeight: 'bold',
-                    fontSize: '1em'}
+const titleStyle = {...styles.font,
+                    fontWeight: 'bold',
+                    margin: '1em'}
 
-const buttonStyle = {
-  fontSize: '1em',
-  margin: '1em'
-}
+const buttonStyle = {...styles.button,
+                     margin: '1em'}
 
 const lobbyStyle = {textAlign: 'center', 
-                   backgroundColor: 'white',
-                   fontSize: '2em'}
+                    fontSize: '2em'}
 
-export default Lobby
+export default Radium(Lobby)
