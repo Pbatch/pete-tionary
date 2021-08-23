@@ -1,26 +1,24 @@
 import { WRITE_PROMPT } from '../constants/modes'
 import { useSelector, shallowEqual } from 'react-redux'
+import { styles } from '../styles'
+import Radium from 'radium'
 
-const Form = ({prompt, setPrompt, handleSubmit}) => {  
+const Form = ({handleSubmit}) => {  
   const mode = useSelector(state => state.mode, shallowEqual)
 
-  function handleChange(e) {
-    const newPrompt = e.target.value.replace(/ /g, '_')
-    setPrompt(newPrompt)
-  }
-  
   return (
     <div id='form'>
       <form onSubmit={handleSubmit} style={formStyle}>
         <input 
-          type="text" 
+          type='text' 
           disabled={mode !== WRITE_PROMPT} 
-          value={prompt.replace(/_/g, ' ')} 
-          onChange={handleChange} 
           style={inputStyle}
+          autoCorrect={'off'}
+          autoCapitalize={'none'}
+          spellCheck={'false'}
         />
         <button 
-          type="submit" 
+          type='submit'
           disabled={mode !== WRITE_PROMPT} 
           style={buttonStyle}
         >
@@ -32,6 +30,7 @@ const Form = ({prompt, setPrompt, handleSubmit}) => {
 }
 
 const formStyle = {
+  ...styles.font,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -40,11 +39,13 @@ const formStyle = {
 }
 
 const inputStyle = {
-  width: '30vw'
+  width: '30vw',
+  outline: 'none'
 }
 
 const buttonStyle = {
+  ...styles.button,
   width: '10vw'
 }
 
-export default Form
+export default Radium(Form)
