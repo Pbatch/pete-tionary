@@ -27,21 +27,21 @@ const App = () => {
     }
   }, [dispatch])
 
-  let screen
+  let content
   if (state.username === '') {
-    screen = <Authenticator />
+    content = <Authenticator />
   }
   else if (state.roomName !== '') {
-    screen = <Game />
+    content = <Game />
   }
   else {
-    screen = <Lobby />
+    content = <Lobby />
   }
 
   return (
     <div>
-      <Header />
-      {screen}
+      <Header style={{height: '5vh'}}/>
+      {content}
     </div>
   )
 }
