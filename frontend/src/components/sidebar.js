@@ -9,6 +9,7 @@ import { END_OF_GAME, WAIT_FOR_START, SELECT_ROOM } from '../constants/modes'
 import { setMode, setImages, setRound, setRoomName, setUsernames } from '../actions/index'
 import { styles } from '../styles'
 import Radium from 'radium'
+import { DARK_GRAY } from '../constants/colours'
 
 const Sidebar = () => {
   const dispatch = useDispatch()
@@ -95,7 +96,7 @@ const Sidebar = () => {
 
 const sidebarStyle = {
   ...styles.text,
-  backgroundColor: '#222222',
+  backgroundColor: DARK_GRAY,
   fontSize: '2.5vw',
   textAlign: 'center'
 }
