@@ -1,6 +1,6 @@
 import { SET_IMAGES } from '../constants/action-types' 
 
-const initialState = []
+const initialState = [[]]
 
 const Images = (state = initialState, action) => {
   switch(action.type) {
