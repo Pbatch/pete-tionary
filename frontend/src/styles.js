@@ -1,19 +1,39 @@
+import { LIGHT_BLUE, DARK_BLUE } from './constants/colours'
+
 export const styles = {
-  'font': {
+  'text': {
     color: 'white',
-    fontFamily: 'Arial',
-    textAlign: 'center',
-    fontSize: '1em'
+    fontFamily: 'Arial'
   },
   'button': {
     color: 'white',
     fontFamily: 'Arial',
-    textAlign: 'center',
-    fontSize: '1em',
-    backgroundColor: '#375a7f',
+    backgroundColor: LIGHT_BLUE,
     borderRadius: '8px',
     ':hover': {
-      backgroundColor: '#204d74',
+      backgroundColor: DARK_BLUE,
+    }
+  },
+  'singleLine': {
+    ':after': {
+      content: "",
+      display: 'inline-block',
+      width: '100%',
+    }
+  },
+  'arrow': {
+    borderTop: '10px solid',
+    borderRight: '10px solid',
+    borderColor: LIGHT_BLUE,
+    display: 'inline-block',
+    padding: 'small',
+    height: '1vw',
+    width: '1vw',
+    ':focus': {
+      outlineStyle: 'none'
+    },
+    ':hover': {
+      borderColor: DARK_BLUE
     }
   }
 }
