@@ -22,7 +22,7 @@ const Info = () => {
       case WAIT_FOR_PLAYERS:
         return 'Waiting for other players...'
       case END_OF_GAME:
-        return 'That\'s the end of the game, see how your image evolved over time.'
+        return 'That\'s the end of the game, have a look at the stories you made.'
       case WAIT_FOR_START:
         return 'Waiting for the admin to start the game.'
       default:
@@ -34,8 +34,10 @@ const Info = () => {
 }
 
 const infoStyle = {
-  ...styles.font,
-  textAlign: 'center',
-  fontSize: '1.5em'
+  ...styles.singleLine,
+  ...styles.text,
+  paddingTop: '5vh',
+  fontSize: '2vw',
+  textAlign: 'center'
 }
 export default Info
