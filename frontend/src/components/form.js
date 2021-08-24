@@ -3,8 +3,9 @@ import { useSelector, shallowEqual } from 'react-redux'
 import { styles } from '../styles'
 import Radium from 'radium'
 
-const Form = ({handleSubmit}) => {  
+const Form = ({handleSubmit, formError}) => {  
   const mode = useSelector(state => state.mode, shallowEqual)
+  
 
   return (
     <div id='form'>
@@ -25,6 +26,9 @@ const Form = ({handleSubmit}) => {
           Submit
         </button>
       </form>
+      <div style={errorStyle}>
+        {formError}
+      </div>
     </div>
   )
 }
@@ -32,20 +36,28 @@ const Form = ({handleSubmit}) => {
 const formStyle = {
   ...styles.font,
   display: 'flex',
-  alignItems: 'center',
   justifyContent: 'center',
-  margin: '1em',
-  columnGap: '1em'
+  columnGap: '1vw',
+  paddingTop: '3vh'
 }
 
 const inputStyle = {
   width: '30vw',
-  outline: 'none'
+  outline: 'none',
+  height: '4.5vh'
 }
 
 const buttonStyle = {
   ...styles.button,
-  width: '10vw'
+  width: '10vw',
+  height: '5vh',
+  fontSize: '2vw'
+}
+
+const errorStyle = {
+  ...styles.text,
+  textAlign: 'center',
+  paddingTop: '1vh'
 }
 
 export default Radium(Form)
