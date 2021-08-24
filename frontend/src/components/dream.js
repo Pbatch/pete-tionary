@@ -7,28 +7,37 @@ import { API, graphqlOperation } from 'aws-amplify'
 import { useEffect, useState } from 'react'
 import { styles } from '../styles'
 import Radium from 'radium'
+import { mod } from '../utils' 
 
 const Dream = () => {
   const dispatch = useDispatch()
   const state = useSelector(state => state, shallowEqual)
   const [imageDisplay, setImageDisplay] = useState()
+  const [visibility, setVisibility] = useState('hidden')
+  const [offset, setOffset] = useState(0) 
 
   useEffect(() => {
     const handleClick = async (e) => {
       e.preventDefault()
       if (state.mode !== SELECT_IMAGE) return
-      const newImages = state.images.filter((image) => image.url === e.target.src)
+      const newImages = state.images[0].filter((image) => image.url === e.target.src)
       const message = {url: e.target.src, 
                        round: state.round + 1, 
                        username: state.username, 
                        roomName: state.roomName}
       API.graphql(graphqlOperation(CreateMessage, message))
-      dispatch(setImages(newImages))
+      dispatch(setImages([newImages]))
       dispatch(setMode(WAIT_FOR_PLAYERS))
     }
+    // We have about 60vw to work with
+    // This seems OK for 1-4 players, need to check 5+
+    const imageWidth = Math.min(20, 60 / state.images.length)
     const imageStyle = {...imageStyle_, 
-                        width: `${80/(state.images.length + 2)}vw`}
-    const newImageDisplay = state.images.map(({ url, username, prompt }) => {
+                        width: `${imageWidth}vw`}
+    const captionStyle = {...captionStyle_,
+                         width: `${imageWidth}vw`}
+    
+    const newImageDisplay = state.images[offset].map(({ url, username, prompt }) => {
       if (!prompt) return <div key={v4()}></div>
       const cleanPrompt = prompt.replaceAll(/_/g, " ")
       const captionText = `${username}: "${cleanPrompt}"`
@@ -41,11 +50,24 @@ const Dream = () => {
         )
       })
       setImageDisplay(newImageDisplay)
-  }, [state, dispatch])
+     
+    setVisibility((state.mode === END_OF_GAME) ? 'visible' : 'hidden')
+
+  }, [state, dispatch, offset])
  
   return (
     <div style={dreamStyle}>
+      <div 
+        key='leftArrow'
+        style={{...leftArrowStyle, 'visibility': visibility}}
+        onClick={() => setOffset(mod(offset - 1, state.images.length))} 
+      />
       {imageDisplay}
+      <div 
+        key='rightArrow'
+        style={{...rightArrowStyle, 'visibility': visibility}}
+        onClick={() => setOffset(mod(offset + 1, state.images.length))} 
+      />
     </div>
   )
 }
@@ -53,14 +75,21 @@ const Dream = () => {
 const imageStyle_ = {border: '1px solid white'}
 
 const dreamStyle = {display: 'flex',
-                    alignItems: 'center',
+                    columnGap: '3vw',
                     justifyContent: 'center',
-                    columnGap: '2em',
-                    margin: '1em',
-                    minHeight: '40vh'}
+                    minHeight: '55vh',
+                    paddingTop: '10vh'}
 
-const captionStyle = {...styles.font,
-                      padding: '1em',
-                      maxWidth: '20em'}
+const captionStyle_ = {...styles.text,
+                       ...styles.singleLine,
+                       textAlign: 'center',
+                       paddingTop: '3vh',
+                       fontSize: '1.5vw'}
+
+const leftArrowStyle = {...styles.arrow,
+                       'transform': 'rotate(-135deg'}
+
+const rightArrowStyle = {...styles.arrow,
+                        'transform': 'rotate(45deg)'}
 
 export default Radium(Dream)
