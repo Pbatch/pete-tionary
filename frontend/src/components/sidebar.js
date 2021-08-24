@@ -75,33 +75,35 @@ const Sidebar = () => {
 
   return (
     <div style={sidebarStyle}>
-      <br/>
-      <br/>
-      <div>
+      <div style={{paddingTop: '15vh'}}>
         <div><b>Room</b></div>
         <div>{state.roomName}</div>
       </div>
-      <br/>
-      <div>
+      <div style={{paddingTop: '5vh'}}>
         <b>Players</b>
       </div>
       {usernameList}
-      <br/>
-      <div>{startButton}</div>
-      <br/>
-      <div>{lobbyButton}</div>
+      <div style={{paddingTop: '5vh'}}>
+        {startButton}
+      </div>
+      <div style={{paddingTop: '3vh'}}>
+        {lobbyButton}
+      </div>
     </div>
   )
 }
 
 const sidebarStyle = {
-  ...styles.font,
-  fontSize: '2em'
+  ...styles.text,
+  backgroundColor: '#222222',
+  fontSize: '2.5vw',
+  textAlign: 'center'
 }
 
 const buttonStyle = {
   ...styles.button,
-  width: '4em'
+  fontSize: '2.5vw',
+  width: '10vw'
 }
 
 export default Radium(Sidebar)
