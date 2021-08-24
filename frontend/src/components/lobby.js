@@ -5,7 +5,6 @@ import { CreateRoom, CreateMessage } from '../graphql/mutations'
 import { OnCreateRoom, OnDeleteRoom } from '../graphql/subscriptions'
 import { ListRooms } from '../graphql/queries'
 import { sampleSize } from 'lodash'
-import { v4 } from 'node-uuid'
 import { setMode, setAdmin, setImages, setRound, setRoomName } from '../actions'
 import { SELECT_ROOM, WAIT_FOR_START } from '../constants/modes'
 import { styles } from '../styles'
@@ -66,7 +65,7 @@ const Lobby = () => {
   const enterRoom = (roomName) => {  
     // Set the initial state
     dispatch(setMode(WAIT_FOR_START))
-    dispatch(setImages([]))
+    dispatch(setImages([[]]))
     dispatch(setRound(0))
     dispatch(setRoomName(roomName))
 
@@ -77,28 +76,26 @@ const Lobby = () => {
 
   const roomButtons = rooms.map(({roomName}) => {
     return (
-      <div key={v4()}>
-        <button 
-          onClick={(e) => handleEnterRoomSubmit(e, roomName)} 
-          style={buttonStyle}
-          disabled={state.mode !== SELECT_ROOM}
-        >
-            {roomName}
-        </button>
-      </div>
+      <button 
+        onClick={(e) => handleEnterRoomSubmit(e, roomName)} 
+        style={buttonStyle}
+        disabled={state.mode !== SELECT_ROOM}
+        key={roomName}
+      >
+          {roomName}
+      </button>
     )
   })
 
   const createRoomButton = (
-    <div>
-      <button 
-        onClick={handleCreateRoomSubmit}
-        disabled={state.admin !== ''}
-        style={buttonStyle}
-      >
-        Create
-      </button>
-    </div>
+    <button 
+      onClick={handleCreateRoomSubmit}
+      disabled={state.admin !== ''}
+      style={buttonStyle}
+      key={'CreateRoomButton'}
+    >
+      Create
+    </button>
   )
 
   const title = (
@@ -109,21 +106,28 @@ const Lobby = () => {
 
   return (
     <div style={lobbyStyle}>
-      {title}
-      {roomButtons}
-      {createRoomButton}
+      <div style={{paddingTop: '10vh'}}>
+        {title}
+      </div>
+      <div style={{paddingTop: '10vh'}}>
+        {roomButtons}
+      </div>
+      <div style={{paddingTop: '10vh'}}>
+        {createRoomButton}
+      </div>
     </div>
   )
 }
 
-const titleStyle = {...styles.font,
+const titleStyle = {...styles.text,
                     fontWeight: 'bold',
-                    margin: '1em'}
+                    fontSize: '4vw'}
 
 const buttonStyle = {...styles.button,
-                     margin: '1em'}
+                     fontSize: '4vw',
+                     margin: '2vw'}
 
 const lobbyStyle = {textAlign: 'center', 
-                    fontSize: '2em'}
+                    height: '90vh'}
 
 export default Radium(Lobby)
