@@ -15,8 +15,11 @@ import Sidebar from './sidebar'
 import Form from './form'
 import Dream from './dream'
 import Info from './info'
+import { useState } from 'react'
+import { mod } from '../utils'
 
 const Game = () => {
+  const [formError, setFormError] = useState('')
   const dispatch = useDispatch()
   const state = useSelector(state => state, shallowEqual)
 
@@ -30,10 +33,6 @@ const Game = () => {
     // url.split('/').pop().split('=')[1].split('-')[0] => "squidward"
     return url.split('/').pop().split('=')[1].split('-')[0]
   }
-  
-  const mod = (a, b) => {
-    return ((a % b) + b) % b
-  }  
 
   useEffect(() => {
     let onDeleteRoomPayload = {'roomName': state.roomName}
@@ -59,7 +58,6 @@ const Game = () => {
         // Not everyone's images are ready yet
         if ((nUsers !== messages.length) || (nUsers === 0)) return
         
-        let newImages = []
         if (newRound === nUsers) {
           // Fetch all the messages from the entire game
           let payload = {'roomName': state.roomName}
@@ -67,22 +65,29 @@ const Game = () => {
           let messages = messageData.data.listMessages.items
           .sort((m1, m2) => (m1.username > m2.username) - (m1.username < m2.username))
 
-          // Get the usernames picture from the 1st round, 
-          // the previous usernames picture from the 2nd round etc.
-          for (let round=1; round <= nUsers; round++) {
-            let roundEntries = messages.filter(m => m.round === round)
-            let message = roundEntries[mod(usernameIndex - round + 1, nUsers)]
-            newImages.push({'url': message.url,
-                            'username': message.username,
-                            'prompt': urlToPrompt(message.url)
-                            })
+          // Sort the messages into individual stories
+          let newImages = []
+          for (let offset=0; offset < nUsers; offset++) {
+            let story = []
+            for (let round=1; round <= nUsers; round++) {
+              let roundEntries = messages.filter(m => m.round === round)
+              let message = roundEntries[mod(usernameIndex - round + 1 + offset, nUsers)]
+              story.push({'url': message.url,
+                          'username': message.username,
+                          'prompt': urlToPrompt(message.url)
+                          })
+            }
+            newImages.push(story)
           }
+
           if (state.admin === state.roomName) {
             dispatch(setAdmin(''))
           }
           dispatch(setMode(END_OF_GAME))
+          dispatch(setImages(newImages))
         }
         else {
+          let newImages = []
           let message = messages[mod(usernameIndex + 1, nUsers)]
           newImages.push({'url': message.url,
                           'username': message.username,
@@ -90,8 +95,9 @@ const Game = () => {
                          })
           dispatch(setRound(newRound))
           dispatch(setMode(WRITE_PROMPT))
+          dispatch(setImages([newImages]))
         }
-        dispatch(setImages(newImages))
+        
       }
     })
     return () =>  {
@@ -130,12 +136,12 @@ const Game = () => {
       let newImages = []
       for (let i=0; i<3; i++) {
         newImages.push({'url': `${LAMBDA_CONFIG['bucketUrl']}/prompt=${prompt}-seed=${i}.jpg`,
-                        'username': state.username,
-                        'prompt': prompt
-                      })
+                           'username': state.username,
+                           'prompt': prompt
+                          })
       }
       dispatch(setMode(SELECT_IMAGE))
-      dispatch(setImages(newImages))
+      dispatch(setImages([newImages]))
     }
   }
 
@@ -149,30 +155,31 @@ const Game = () => {
 
     // All prompts must be 1 to 50 lowercase alphabet characters (+ underscores)
     const regex = /^[a-z_]{1,50}$/
-    if (!regex.test(prompt)) return
-    dispatch(setMode(WAIT_FOR_IMAGES))
-    generateImages(prompt)
-    waitForImages(prompt)
+    if (!regex.test(prompt)) {
+      setFormError('The prompt must be 1-50 a-z characters + spaces')
+    } else {
+      setFormError('')
+      dispatch(setMode(WAIT_FOR_IMAGES))
+      generateImages(prompt)
+      waitForImages(prompt)
+    }
   }
 
   return (
-    <div style={appStyle}>
-      <div style={{width: '15vw'}}>
+    <div style={{display: 'flex'}}>
+      <div style={{width: '15vw', height: '90vh', backgroundColor: '#222222'}}>
         <Sidebar />
       </div>
-      <div style={{width: '85vw'}}>
+      <div style={{width: '85vw', height: '90vh', paddingRight: '5vw'}}>
         <Info />
         <Dream />
         <Form 
           handleSubmit={handleSubmit} 
+          formError={formError}
         />
       </div>
     </div>
   )
 }
-
-const appStyle = {textAlign: 'center', 
-                  margin: '1em',
-                  display: 'flex'}
 
 export default Game
