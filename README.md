@@ -1,90 +1,95 @@
-# Deep Daze Pictionary
+# Pete-tionary
 
 Play at https://pictionary.pbatch.net/.
 
-Welcome to Deep Daze Pictionary, a combination of image synthesis and telephone pictionary.
-
-![city](./pictures/a_city_burning_down.jpg)
-
-This is a fun game played in groups which proceeds as follows:
-
-1) Each player writes down a prompt I.e. "A robot watching the sunset", and has 3 images generated for them. 
-This currently takes about 60 seconds per player (given that no-one else is on the website).
+Welcome to Pete-tionary, a combination of image synthesis and telephone pictionary.
 
 ![robot](./pictures/a_robot_watching_the_sunset.jpg)
 
-2) Each player selects the image that best matches their prompt.
+This is a fun game played in groups which proceeds as follows:
 
-![robot_single](./pictures/a_robot_watching_the_sunset_single.jpg)
+---
 
-3) All the images are passed on, and now each player must write a prompt that matches the image (step 1)
+Each player writes down a prompt.
 
-![city_single](./pictures/a_city_burning_down_single.jpg)
+![dog](./pictures/a_dog_in_a_washing_machine.jpg)
 
-Once everyone has seen your original image, 
-the game ends, 
-and you can see how your image developed over time.
+---
 
-This is the final screen for user "chrome"
-![robot_final](./pictures/a_robot_watching_the_sunset_final.jpg)
+Each player selects the image that best matches their prompt.
 
-This is the final screen for user "safari"
-![city_final](./pictures/a_city_burning_down_final.jpg)
+![dog_single](./pictures/a_dog_in_a_washing_machine_single.jpg)
+
+---
+
+Each player passes their image on and receives a new image from another player.
+
+![death_single](./pictures/the_last_meal_on_death_row_single.jpg)
+
+---
+
+Each player must then try to write a prompt that generates a similar image.
+The game continues in this fashion until each player has seen each initial image once.
+
+![supper](./pictures/the_last_supper.jpg)
+
+---
+
+Once the game ends, you can scroll through the stories you have made.
+
+![dog_final](./pictures/a_dog_in_a_washing_machine_final.jpg)
+
+![death_final](./pictures/the_last_meal_on_death_row_final.jpg)
+
+---
 
 IMPORTANT! If the website breaks while you are playing,
  perform a hard reset by deleting the local storage.
 
 ## Credits
 
+Thanks to [Jens Goldberg](https://https://twitter.com/aransentin) for creating the Direct Visions notebook.
+
 Thanks to [Phil Wang](https://github.com/lucidrains) for creating the [Deep Daze](https://github.com/lucidrains/deep-daze) repository,
 and to [Ryan Murdock](https://twitter.com/advadnoun) for the discovery of the technique itself.
 
 ## TODOS
 
-* Add comments to the code...
-* Age off messages more than an hour old
-* Fix design for different screen sizes
 * Connect Redux state with Amplify
 * Make the S3 URL checks a graphQL subscription (instead of pinging from Lambda) 
-* Allow users to see all pictures at the end of the game (instead of just their own)
-
-## Possible improvements
-
-* Faster convergence of the SIREN network
-* Cheaper/faster infrastructure (the current version of the website costs about £0.50 an hour)
-* The ability to use a custom seed image
-* Test other image synthesis methods (VQ-GAN...)
-* Whatever you guys put in issues... :)
+* Add the current queue size to the waiting screen
+* Use a GAN to create high-resolution outputs
+* Run the server from inside Google Colab to save money
  
 ## Deploying your own version of the website
 
-0.) Install AWS CDK and the AWS CLI
+0) Install AWS CDK and the AWS CLI
 
-1.) Make a private ECR repository
+1) Make a private ECR repository
 
-2.) Follow the commands in the ECR repository to upload the Docker image
+2) Follow the commands in the ECR repository to upload the Docker image
 
-3.) Set the global variables in `backend/pictionary/pictionary_stack.py`
+3) Set the global variables in `backend/pictionary/pictionary_stack.py`
 
-4.) Deploy the CloudFormation stack (run this command in `backend`)
+4) Deploy the CloudFormation stack (run this command in `backend`)
 
-```
-cdk deploy --outputs-file "../frontend/src/constants/cdk.json"
-```
+    ```
+    cdk deploy --outputs-file "../frontend/src/constants/cdk.json"
+    ```
 
-5.) Build the website (run this command in `frontend`)
+5) Build the website (run this command in `frontend`)
 
-```
-npm run build
-```
+    ```
+    npm run build
+    ```
 
-6.) Deploy the CloudFormation stack again (See step 4)
+6) Deploy the CloudFormation stack again (See step 4)
 
-5.) Start the server
+7) Start the server
 
-```
-python server.py
-```
+    ```
+    python server.py
+    ```
 
 ## Contact
 
