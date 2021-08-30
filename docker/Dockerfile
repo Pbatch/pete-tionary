@@ -7,7 +7,7 @@ RUN apt-get update && \
     pip3 install --upgrade pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install ftfy einops boto3 regex kornia
+    pip install ftfy boto3 regex kornia
 
 # Copy the files required for downloading the CLIP weights
 COPY clip.py utils.py download.py ./
@@ -16,6 +16,6 @@ COPY clip.py utils.py download.py ./
 RUN python3 download.py
 
 # Copy everything else
-COPY deep_daze.py imagine.py main.py siren.py tokenizer.py bpe_simple_vocab_16e6.txt ./
+COPY main.py direct_visions.py tokenizer.py bpe_simple_vocab_16e6.txt ./
 
 CMD python3 main.py --bucket $bucket --queueUrl $queueUrl --region $region
