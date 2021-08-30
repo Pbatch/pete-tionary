@@ -1,11 +1,8 @@
-from imagine import Imagine
-from deep_daze import DeepDaze
+from direct_visions import DirectVisions
 from utils import download_vit, load_perceptor
 import os
 import argparse
 import boto3
-import torch
-import random
 import time
 
 s3_client = boto3.client('s3')
@@ -13,16 +10,16 @@ s3_client = boto3.client('s3')
 
 def create_images(prompt, perceptor, bucket):
     # Generate the image
-    model = DeepDaze(perceptor, n_images=3)
-    imagine = Imagine(prompt=prompt, model=model)
-    imagine()
+    model = DirectVisions(prompt=prompt,
+                          perceptor=perceptor,
+                          n_images=3)
+    model.run()
 
-    # Save the images
-    save_paths = [f'prompt={prompt.replace(" ", "_")}-seed={seed}.jpg'
-                  for seed in range(3)]
-    imagine.save(save_paths)
-    for save_path in save_paths:
-        s3_client.upload_file(save_path, bucket, save_path)
+    # Save the images to S3
+    for i in range(model.n_images):
+        path = f'prompt={model.prompt.replace(" ", "_")}-seed={i}.jpg'
+        s3_client.upload_file(path, bucket, path)
+        os.remove(path)
 
 
 def poll_queue(queue_url, bucket, region):
