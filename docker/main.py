@@ -1,17 +1,19 @@
 from direct_visions import DirectVisions
-from utils import download_vit, load_perceptor
+from utils import download_vit, load_perceptor, load_enhancer
 import os
 import argparse
 import boto3
 import time
+import torch
 
 s3_client = boto3.client('s3')
 
 
-def create_images(prompt, perceptor, bucket):
+def create_images(prompt, perceptor, enhancer, bucket):
     # Generate the image
     model = DirectVisions(prompt=prompt,
                           perceptor=perceptor,
+                          enhancer=enhancer,
                           n_images=3)
     model.run()
 
@@ -23,9 +25,15 @@ def create_images(prompt, perceptor, bucket):
 
 
 def poll_queue(queue_url, bucket, region):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     # Load the CLIP perceptor
-    path = os.path.expanduser('~/.cache/clip/ViT-B-32.pt')
-    perceptor = load_perceptor(path)
+    perceptor_path = os.path.expanduser('~/.cache/clip/ViT-B-32.pt')
+    perceptor = load_perceptor(perceptor_path).to(device)
+
+    # Load the enhancer
+    enhancer_path = 'x4plus.pth'
+    enhancer = load_enhancer(enhancer_path).to(device)
 
     # Continuously poll the queue
     queue = boto3.resource('sqs', region_name=region).Queue(queue_url)
@@ -35,7 +43,7 @@ def poll_queue(queue_url, bucket, region):
         if response:
             message = response[0]
             prompt = message.body
-            create_images(prompt, perceptor, bucket)
+            create_images(prompt, perceptor, enhancer, bucket)
             message.delete()
         else:
             time.sleep(1)
