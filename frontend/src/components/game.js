@@ -158,6 +158,7 @@ const Game = () => {
     if (!regex.test(prompt)) {
       setFormError('The prompt must be 1-50 a-z characters + spaces')
     } else {
+      e.target.reset()
       setFormError('')
       dispatch(setMode(WAIT_FOR_IMAGES))
       generateImages(prompt)
