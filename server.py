@@ -1,9 +1,10 @@
 import boto3
 import json
 
+client = boto3.client('ecs')
 
-def main():
-    client = boto3.client('ecs')
+
+def run_task():
     with open('frontend/src/constants/cdk.json', 'r') as f:
         CDK_CONFIG = json.loads(f.read())['pictionary']
 
@@ -34,6 +35,11 @@ def main():
         overrides=overrides
     )
     print(response)
+
+
+def main():
+    for _ in range(3):
+        run_task()
 
 
 if __name__ == '__main__':
