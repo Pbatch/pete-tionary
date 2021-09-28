@@ -6,8 +6,22 @@ import warnings
 from tqdm import tqdm
 from clip import CLIP
 from torch import nn
+from basicsr.archs.rrdbnet_arch import RRDBNet
 
 VIT_URL = 'https://openaipublic.azureedge.net/clip/models/40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af/ViT-B-32.pt'
+
+
+def load_enhancer(enhancer_path):
+    # Scales by 4x (64x64 to 256x256)
+    enhancer = RRDBNet(num_in_ch=3,
+                       num_out_ch=3,
+                       num_feat=64,
+                       num_block=23,
+                       num_grow_ch=32)
+    load_net = torch.load(enhancer_path)
+    enhancer.load_state_dict(load_net['params_ema'], strict=True)
+    enhancer = enhancer.eval()
+    return enhancer
 
 
 def download_vit():
