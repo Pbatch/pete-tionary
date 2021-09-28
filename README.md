@@ -45,20 +45,40 @@ Once the game ends, you can scroll through the stories you have made.
 
 IMPORTANT! If the website breaks while you are playing,
  perform a hard reset by deleting the local storage.
+ 
+## Example Game
+
+![banana_penis](./pictures/banana_penis.JPG)
+
+---
+
+![midnight_blood_ritual_cult](./pictures/midnight_blood_ritual_cult.JPG)
+
+---
+
+![popworld](./pictures/popworld.JPG)
+
+---
+
+![spiralling_out_of_control](./pictures/spiralling_out_of_control.JPG)
+
+---
+
+![the_greem_army_from_toystory](./pictures/the_greem_army_from_toy_story.JPG)
 
 ## Credits
 
 Thanks to [Jens Goldberg](https://https://twitter.com/aransentin) for creating the Direct Visions notebook.
 
-Thanks to [Phil Wang](https://github.com/lucidrains) for creating the [Deep Daze](https://github.com/lucidrains/deep-daze) repository,
+Special mention to [Phil Wang](https://github.com/lucidrains) for creating the [Deep Daze](https://github.com/lucidrains/deep-daze) repository,
 and to [Ryan Murdock](https://twitter.com/advadnoun) for the discovery of the technique itself.
 
+A huge of amount of gratitude to those who have given their time to test the game at various points.
 ## TODOS
 
 * Connect Redux state with Amplify
 * Make the S3 URL checks a graphQL subscription (instead of pinging from Lambda) 
 * Add the current queue size to the waiting screen
-* Use a GAN to create high-resolution outputs
 * Run the server from inside Google Colab to save money
  
 ## Deploying your own version of the website
